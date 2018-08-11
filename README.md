@@ -2,7 +2,7 @@
 
 Bluetooth firmware for the Mitosis keyboard
 
-## Firmware
+## Precompiled Firmware
 
 * Download the latest .hex file from the [releases section](https://github.com/joric/mitosis-bluetooth/releases).
 * Download softdevice s130 2.0.1 from the [Nordic site](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724).
@@ -47,7 +47,7 @@ You need to flash the programmer firmware ([Blackmagic](https://github.com/black
 * set jumpers to 0-1 0-0, hook up UART ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg))
 * open the latest `blackmagic.bin` built with `make clean && make PROBE_HOST=stlink` 
 * force select 128K device, select offset 0x08002000, hit Flash
-* set jumpers to 0-0 0-0, hook up your favoirite SWD board ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg))
+* set jumpers to 0-0 0-0, hook up your favorite SWD board ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg))
 * get the latest [zadig](https://zadig.akeo.ie/), update all drivers to libusbK or something
 * run something like `arm-none-eabi-gdb --quiet --batch -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" –ex "load nrf51822_xxac.hex" –ex kill`
 
