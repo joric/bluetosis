@@ -4,7 +4,7 @@ Bluetooth firmware for the Mitosis keyboard
 
 ## Precompiled Firmware
 
-Download the latest .hex file from the [releases section](https://github.com/joric/mitosis-bluetooth/releases).
+Download the latest .hex file from the [releases section](https://github.com/joric/bluetosis/releases).
 You need to flash the right half only (the left one uses stock Mitosis firmware).
 Firmware does NOT come with the softdevice because it would violate Nordic redistribution terms.
 Download softdevice s130 2.0.1 from the [Nordic site](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724)
@@ -65,7 +65,7 @@ mergehex.exe -m s130_nrf51_2.0.1_softdevice.hex nrf51822_xxac.hex -o out.hex
 
 ## Building
 
-Copy this repository to the `nRF5_SDK_12/mitosis-bluetooth` folder.
+Copy this repository to the `nRF5_SDK_12/bluetosis` folder.
 
 Mind that symlink or junction won't work on Windows 10 for some reason (GCC Makefile error `... is a directory. stop`).
 
@@ -82,7 +82,7 @@ to build standard version remove `COMPILE_REVERSED` from defines.
 sudo apt install openocd gcc-arm-none-eabi
 (edit nRF5_SDK_12/components/toolchain/gcc/Makefile.posix, set GNU_INSTALL_ROOT := /usr/)
 cd nRF5_SDK_12
-git clone https://github.com/joric/mitosis-bluetooth && cd mitosis-bluetooth
+git clone https://github.com/joric/bluetosis && cd bluetosis
 cd firmware/custom/armgcc && make
 ```
 
@@ -145,7 +145,7 @@ Mind that debugging UART has it's own pin settings nearby
 
 * Full QMK/TMK suport (maybe)
 
-#### QMK support is still in progress (Mitosis-Bluetooth compiles fine without QMK)
+#### QMK support is still in progress (firmware compiles fine without QMK)
 
 QMK firwmare has massive incompatibility issues with ICCARM (IAR) that can't be fixed with preprocessor.
 So it's either a fully-GCC setup (armgcc and maybe uVision Keil) or patching QMK
