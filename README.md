@@ -50,8 +50,7 @@ Then use arm-none-eabi-gdb for uploading (you can find it in the Arduino IDE fol
 
 ```
 arm-none-eabi-gdb.exe -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" ^
--ex "mon erase_mass" –ex "load out.hex" –ex "quit"
-
+-ex "mon erase_mass" –ex "load out.hex" –ex "kill"
 ```
 
 Then disconnect the programmer and reconnect power, or run the program from the GDB prompt - "load out.hex", "run".
