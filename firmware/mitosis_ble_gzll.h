@@ -4,8 +4,6 @@
 #include "nrf_drv_rtc.h"
 #include "nrf_soc.h"
 
-#define COMPILE_REVERSED
-
 #ifdef COMPILE_REVERSED
 #define COMPILE_LEFT
 #else
@@ -562,11 +560,6 @@ typedef struct
 
 static savedata_t savedata;
 
-static void my_fds_evt_handler(fds_evt_t const * const p_fds_evt)
-{
-}
-
-
 void eeprom_read()
 {
     fds_find_token_t       ftok = {0}; //Important, make sure you zero init the ftok token
@@ -632,28 +625,6 @@ static void switch_update(pm_peer_id_t peer_id)
 }
 
 
-static void switch_connect()
-{
-/*
-    // check number of peers, add up to PEERS_COUNT if needed
-    pm_peer_id_t peer_id;
-    uint32_t     peers_to_copy;
-
-    peers_to_copy = (*p_size < BLE_GAP_WHITELIST_ADDR_MAX_COUNT) ?
-                     *p_size : BLE_GAP_WHITELIST_ADDR_MAX_COUNT;
-
-    peer_id = pm_next_peer_id_get(PM_PEER_ID_INVALID);
-    *p_size = 0;
-
-    while ((peer_id != PM_PEER_ID_INVALID) && (peers_to_copy--))
-    {
-        p_peers[(*p_size)++] = peer_id;
-        peer_id = pm_next_peer_id_get(peer_id);
-    }
-*/
-}
-
-
 static void switch_init()
 {
     eeprom_read();
@@ -670,7 +641,7 @@ static void switch_select(uint8_t index)
     if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
         sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
 
-    printf("switch_select: %d\n", switch_index);
+    printf("switch_select: %d\n", (int)switch_index);
 }
 
 
@@ -712,12 +683,12 @@ void hardware_keys()
             if (keys & (1<<KEY_FN))
             {
                 switch_reset(index);
+                m_delayed_reset = true;
             }
 
             if (running_mode != ((index == RF_INDEX) ? GAZELL : BLE))
             {
                 m_delayed_reset = true;
-                printf("Delayed reset started\n");
             }
         }
     }
@@ -751,7 +722,7 @@ uint8_t get_modifier(uint16_t key)
 
 void key_handler()
 {
-    //printf("key_handler %d %d\n", (int)keys_recv, (int)keys);
+    printf("key_handler %d %d\n", (int)keys_recv, (int)keys);
 
     if (running_mode == GAZELL)
         return;
@@ -871,7 +842,11 @@ void mitosis_init(bool erase_bonds)
 
     printf(running_mode == GAZELL ? "RECEIVER MODE\n" : "BLUETOOTH MODE\n");
 
-    printf("SELECTED DEVICE: %d\n", switch_index);
+    printf("SELECTED DEVICE: %d\n", (int)switch_index);
+
+#if COMPILE_REVERSED
+    printf("REVERSED\n");
+#endif
 
     gazell_sd_radio_init();
 }

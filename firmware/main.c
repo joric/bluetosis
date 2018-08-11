@@ -250,8 +250,6 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  */
 static void peer_list_get(pm_peer_id_t * p_peers, uint32_t * p_size)
 {
-    printf("PEER LIST GET\n");
-
     pm_peer_id_t peer_id;
     uint32_t     peers_to_copy;
 

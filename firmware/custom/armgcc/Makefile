@@ -193,7 +193,8 @@ CFLAGS +=  -Wall -Werror -O3 -g3
 CFLAGS += -mfloat-abi=soft
 # keep every function in separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
-CFLAGS += -fno-builtin --short-enums 
+CFLAGS += -fno-builtin --short-enums
+CFLAGS += $(USER_DEFINES)
 
 # C++ flags common to all targets
 CXXFLAGS += \
@@ -209,6 +210,7 @@ ASMFLAGS += -DSWI_DISABLE0
 ASMFLAGS += -DNRF51822
 ASMFLAGS += -DNRF_SD_BLE_API_VERSION=2
 ASMFLAGS += -D__HEAP_SIZE=1024 -D__STACK_SIZE=1024
+ASMFLAGS += $(USER_DEFINES)
 
 # Linker flags
 LDFLAGS += -mthumb -mabi=aapcs -L $(TEMPLATE_PATH) -T$(LINKER_SCRIPT)

@@ -3,7 +3,7 @@
 set build=Debug
 
 if "%1"=="" (
-set file=%~dp0custom\iar\_build\nrf51822_xxac.hex
+set file=%~dp0custom\armgcc\_build\nrf51822_xxac.hex
 ) else (
 set file=%1
 )
