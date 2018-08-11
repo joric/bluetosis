@@ -844,7 +844,7 @@ void mitosis_init(bool erase_bonds)
 
     printf("SELECTED DEVICE: %d\n", (int)switch_index);
 
-#if COMPILE_REVERSED
+#ifdef COMPILE_REVERSED
     printf("REVERSED\n");
 #endif
 

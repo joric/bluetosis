@@ -4,13 +4,11 @@ Bluetooth firmware for the Mitosis keyboard
 
 ## Precompiled Firmware
 
-* Download the latest .hex file from the [releases section](https://github.com/joric/mitosis-bluetooth/releases).
-* Download softdevice s130 2.0.1 from the [Nordic site](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724).
-
-This fimware uses SDK 12.0.3 because it's the latest SDK with nRF51822 support.
-You need to flash the right half only (the left one remains stock Mitosis firmware).
-Firmware could NOT be distributed (or merged) with softdevice (s130 2.0.1) because
-it violates Nordic redistribution terms, so flash softdevice first (the same way as firmware, but you need to do it just once).
+Download the latest .hex file from the [releases section](https://github.com/joric/mitosis-bluetooth/releases).
+You need to flash the right half only (the left one uses stock Mitosis firmware).
+Firmware does NOT come with the softdevice because it would violate Nordic redistribution terms.
+Download softdevice s130 2.0.1 from the [Nordic site](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724)
+and flash it the same way as firmware (you need to do it just once).
 
 ## Default Layout (Mitosis-BT)
 
@@ -22,9 +20,17 @@ it violates Nordic redistribution terms, so flash softdevice first (the same way
 Current firmware version switches into a System Off mode after a few minutes of inactivity to save the battery,
 and wakes up on hardware interrupt (any key, usually you press something on a home row).
 
-### Uploading nRF51 Firmware
+## Software
 
-#### ST-Link V2
+* [nRF5 SDK] - nRF51/52 toolchain (this version uses [SDK 12.3.0](http://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v12.x.x/nRF5_SDK_12.3.0_d7731ad.zip))
+* [IAR] - IDE that includes a C/C++ compiler (IAR 8.30 for ARM)
+* [OpenOCD] - embedded debugger for Windows 10 ([openocd-0.10.0-dev-00247-g73b676c.7z])
+* [WinAVR] - firmware tools for AVR MCU ([WinAVR-20100110-install.exe])
+* [Zadig] - you will need to install libusb in order to run OpenOCD ([zadig-2.3.exe])
+
+## Uploading
+
+### ST-Link V2
 
 To flash nRF modules, connect ST-LINK/V2 to the module programming pins (SWCLK, SWDIO, GND, 3.3V - top to bottom) and run this batch (windows 10):
 
@@ -37,7 +43,7 @@ openocd -f interface/stlink-v2.cfg -f target/nrf51.cfg ^
 
 ```
 
-#### BluePill
+### BluePill
 
 This is basically an [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board (STM32F103C8T6)
 that you can use as an ST-Link V2 replacement. No OpenOCD needed.
@@ -172,65 +178,10 @@ See this GCC-only TMK core-based project for example (all API calls are precisel
 
 * https://github.com/Lotlab/nrf51822-keyboard
 
-
-## Software
-
-Original Mitosis software repository: https://github.com/reversebias/mitosis
-
-* [IAR] - IDE that includes a C/C++ compiler (IAR 8.30 for ARM)
-* [nRF5 SDK] - nRF51/52 toolchain (this version uses SDK 12.0.3)
-* [OpenOCD] - embedded debugger for Windows 10 ([openocd-0.10.0-dev-00247-g73b676c.7z])
-* [WinAVR] - firmware tools for AVR MCU ([WinAVR-20100110-install.exe])
-* [Zadig] - you will need to install libusb in order to run OpenOCD ([zadig-2.3.exe])
-
-## Hardware
-
-Original Mitosis hardware repository: https://github.com/reversebias/mitosis-hardware
-
-* [ST-LINK/V2][stlink]: $2.54, had in stock (you can also use [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board [instead](https://gojimmypi.blogspot.com/2017/07/BluePill-STM32F103-to-BlackMagic-Probe.html)).
-* [YJ-14015][yj-ali]: nrf51822 modules, 3 pcs: $10.5 ($3.50 * 3), free shipping, need 2/3, so $7.
-* [10 main PCB's][mitosis.zip] from [EasyEDA], $13.32 ($2 + $11.32 for trackable shipping), used 4/10, so $5.32.
-* [3 receiver PCB's][receiver.zip] from [OshPark], $5.40, free shipping, used only 1/3, so $1.80.
-* [Arduino Pro Micro](https://www.aliexpress.com/item/-/32648920631.html) from Aliexpress (price varies from $2.54 to $4), had in stock.
-* [Si2302] mosfets: board survives reverse polarity for a while, you may just [short the pads](https://i.imgur.com/h1Mx8Yw.jpg).
-* [ASMB-MTB1-0A3A2] from Aliexpress (or Cree CLVBA-FKA, or 3 single LEDs, very optional)
-* [AMS1117]: 5v to 3v regulator, had in stock. You probably can use diodes for 2v drop.
-* [1206 4.7k] resistor arrays, 2 pcs: had in stock (taken from an old motherboard).
-* Switches and caps: most of you have more than you can handle.
-
-### Total
-
-* Keyboard: $12.32 ($7 + $5.32) and I got enough PCBs to build 3 and they can reuse receiver.
-* Receiver: $7.84 ($3.50 + $1.80 + $2.54) firmware upgrade to ble and you wouldn't need it at all.
-
-So, about $20 for a single keyboard.
-
-### PCB Manufacturers
-
-* https://oshpark.com - 3 purple receiver PCBs, $5.40, untracked, 21 days
-* http://easyeda.com - 10 green PCBs for $2 + $11.32 shipping = $13.32, trackable, 10 days
-* https://www.elecrow.com - 6 black PCBs for $4.90 + $6.42 shipping = $11.32, trackable, 36 days
-* http://dirtypcbs.com - 10 black for $16.95 + $9.00 shipping = $25.95, untrackable, lost/refunded
-* https://www.seeedstudio.com - 10 black PCBs for $4.90 + $16.50 shipping = $21.40 - untested
-* https://jlcpcb.com - 10 black PCBs for $2 + $10.98 shipping = $12.98 - untested
-
-## Mitosis Clones
-
-* [Interphase](https://github.com/Durburz/interphase) by [/u/Durburz_](https://www.reddit.com/user/Durburz_) (66 keys, diode matrix, voltage regulator, AAA battery) ([Reddit](https://redd.it/7ggeww))
-* [Meiosis](https://redd.it/7uasay)  by [/u/SouthPawEngineer](https://www.reddit.com/u/SouthPawEngineer) (also [Telophase](https://redd.it/7ruihw), [Helicase](https://redd.it/7zfj19) and [Centromere](https://redd.it/8qkib4), no source files available) ([Site](https://southpawdesign.net))
-* [Chimera](https://github.com/GlenPickle/Chimera) by [/u/GlenPickle](https://www.reddit.com/user/GlenPickle) (also Chimera Ergo, Chimera Ortho, Chimera Ergo Mini and Chimera Ergo 42)
-* [Kissboard](https://github.com/fhtagnn/kissboard) by [/u/fhtagnn](https://www.reddit.com/user/fhtagnn) ([AdNW](http://adnw.de)-inspired layout, PCB's are not tested) ([Reddit](https://redd.it/8bauoz)) ([Album](https://imgur.com/a/A95FF))
-* [Dichotomy](https://redd.it/7g54l8) by [/u/Snipeye](https://www.reddit.com/user/Snipeye) (48-key Mitosis clone with digital encoders, no sources available) ([Youtube](https://youtu.be/5jmmYbgtOgI)) ([Kickstarter](https://www.kickstarter.com/projects/1090732691/dichotomy-keyboard-and-mouse)) 
-* [Trident](https://github.com/YCF/Trident) by [/u/imFengz](https://www.reddit.com/u/imFengz) (Wireless Let's Split, module and battery placed between the switches) ([Reddit](https://redd.it/6um7eg)) ([Image](https://i.imgur.com/mCTgwu5.png))
-* [Orthrus](https://github.com/bezmi/orthrus) by [/u/bezmi](https://www.reddit.com/u/bezmi) (great 52-key Atreus/Mitosis crossover, KiCad project) ([Reddit](https://redd.it/8txry7)) 
-* [Comet](https://github.com/satt99/comet46-hardware) by [/u/SaT99](https://www.reddit.com/user/SaT999) (Comet46 - split 40% wireless keyboard) ([Gallery](https://imgur.com/a/vs1W5qB)) ([Firmware](https://github.com/satt99/comet46-firmware)) ([Reddit](https://redd.it/8ykwjj))
-
-## Bluetooth version
-
-### Summary
+## Summary
 
 Mitosis was NOT a Bluetooth keyboard (until now). It used a proprietary rf-protocol (Gazell) and a dedicated receiver.
-Global layers need two wireless channels - Bluetooth HID and something for the communication between halves.
+Global layers need two wireless channels: Bluetooth HID and something for the communication between halves.
 Possible solutions are listed below.
 
 ### Gazell
@@ -274,6 +225,38 @@ BlueMicro is open source, official repositories are [BlueMicro_BLE] (firmware) a
 [BlueMicro_BLE]: https://github.com/jpconstantineau/BlueMicro_BLE 
 [NRF52-Board]: https://github.com/jpconstantineau/NRF52-Board
 
+
+## Hardware
+
+Original Mitosis hardware repository: https://github.com/reversebias/mitosis-hardware
+
+* [ST-LINK/V2][stlink]: $2.54, had in stock (you can also use [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board [instead](https://gojimmypi.blogspot.com/2017/07/BluePill-STM32F103-to-BlackMagic-Probe.html)).
+* [YJ-14015][yj-ali]: nrf51822 modules, 3 pcs: $10.5 ($3.50 * 3), free shipping, need 2/3, so $7.
+* [10 main PCB's][mitosis.zip] from [EasyEDA], $13.32 ($2 + $11.32 for trackable shipping), used 4/10, so $5.32.
+* [3 receiver PCB's][receiver.zip] from [OshPark], $5.40, free shipping, used only 1/3, so $1.80.
+* [Arduino Pro Micro](https://www.aliexpress.com/item/-/32648920631.html) from Aliexpress (price varies from $2.54 to $4), had in stock.
+* [Si2302] mosfets: board survives reverse polarity for a while, you may just [short the pads](https://i.imgur.com/h1Mx8Yw.jpg).
+* [ASMB-MTB1-0A3A2] from Aliexpress (or Cree CLVBA-FKA, or 3 single LEDs, very optional)
+* [AMS1117]: 5v to 3v regulator, had in stock. You probably can use diodes for 2v drop.
+* [1206 4.7k] resistor arrays, 2 pcs: had in stock (taken from an old motherboard).
+* Switches and caps: most of you have more than you can handle.
+
+### Total
+
+* Keyboard: $12.32 ($7 + $5.32) and I got enough PCBs to build 3 and they can reuse receiver.
+* Receiver: $7.84 ($3.50 + $1.80 + $2.54) firmware upgrade to ble and you wouldn't need it at all.
+
+So, about $20 for a single keyboard.
+
+### PCB Manufacturers
+
+* https://oshpark.com - 3 purple receiver PCBs, $5.40, untracked, 21 days
+* http://easyeda.com - 10 green PCBs for $2 + $11.32 shipping = $13.32, trackable, 10 days
+* https://www.elecrow.com - 6 black PCBs for $4.90 + $6.42 shipping = $11.32, trackable, 36 days
+* http://dirtypcbs.com - 10 black for $16.95 + $9.00 shipping = $25.95, untrackable, lost/refunded
+* https://www.seeedstudio.com - 10 black PCBs for $4.90 + $16.50 shipping = $21.40 - untested
+* https://jlcpcb.com - 10 black PCBs for $2 + $10.98 shipping = $12.98 - untested
+
 ## Schematics
 
 There were speculations that Core 51822 has 32 GPIO pins available, so it's possible to make an Atreus62 without
@@ -285,6 +268,16 @@ on each side (58 total) if you manage to layout them without crossing.
 * [nRF51822 Core-B Pinout](https://www.waveshare.com/img/devkit/accBoard/Core51822-B/Core51822-B-pin.jpg)
 * [Mitosis PCB](https://i.imgur.com/apx8W8W.png)
 
+## Mitosis Clones
+
+* [Interphase](https://github.com/Durburz/interphase) by [/u/Durburz_](https://www.reddit.com/user/Durburz_) (66 keys, diode matrix, voltage regulator, AAA battery) ([Reddit](https://redd.it/7ggeww))
+* [Meiosis](https://redd.it/7uasay)  by [/u/SouthPawEngineer](https://www.reddit.com/u/SouthPawEngineer) (also [Telophase](https://redd.it/7ruihw), [Helicase](https://redd.it/7zfj19) and [Centromere](https://redd.it/8qkib4), no source files available) ([Site](https://southpawdesign.net))
+* [Chimera](https://github.com/GlenPickle/Chimera) by [/u/GlenPickle](https://www.reddit.com/user/GlenPickle) (also Chimera Ergo, Chimera Ortho, Chimera Ergo Mini and Chimera Ergo 42)
+* [Kissboard](https://github.com/fhtagnn/kissboard) by [/u/fhtagnn](https://www.reddit.com/user/fhtagnn) ([AdNW](http://adnw.de)-inspired layout, PCB's are not tested) ([Reddit](https://redd.it/8bauoz)) ([Album](https://imgur.com/a/A95FF))
+* [Dichotomy](https://redd.it/7g54l8) by [/u/Snipeye](https://www.reddit.com/user/Snipeye) (48-key Mitosis clone with digital encoders, no sources available) ([Youtube](https://youtu.be/5jmmYbgtOgI)) ([Kickstarter](https://www.kickstarter.com/projects/1090732691/dichotomy-keyboard-and-mouse)) 
+* [Trident](https://github.com/YCF/Trident) by [/u/imFengz](https://www.reddit.com/u/imFengz) (Wireless Let's Split, module and battery placed between the switches) ([Reddit](https://redd.it/6um7eg)) ([Image](https://i.imgur.com/mCTgwu5.png))
+* [Orthrus](https://github.com/bezmi/orthrus) by [/u/bezmi](https://www.reddit.com/u/bezmi) (great 52-key Atreus/Mitosis crossover, KiCad project) ([Reddit](https://redd.it/8txry7)) 
+* [Comet](https://github.com/satt99/comet46-hardware) by [/u/SaT99](https://www.reddit.com/user/SaT999) (Comet46 - split 40% wireless keyboard) ([Gallery](https://imgur.com/a/vs1W5qB)) ([Firmware](https://github.com/satt99/comet46-firmware)) ([Reddit](https://redd.it/8ykwjj))
 
 ## References
 
