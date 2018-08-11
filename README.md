@@ -1,0 +1,253 @@
+# Mitosis-Bluetooth
+
+Bluetooth firmware for the Mitosis keyboard (BLE and Gazell timesharing via timeslot API)
+
+## Video
+
+[![](http://img.youtube.com/vi/Qv22OyWb81g/0.jpg)](https://youtu.be/Qv22OyWb81g)
+
+## Software
+
+Original Mitosis software repository: https://github.com/reversebias/mitosis
+
+* [IAR] - IDE that includes a C/C++ compiler (IAR 8.30 for ARM)
+* [nRF5 SDK] - nRF51/52 toolchain (this version uses SDK 12.0.3)
+* [OpenOCD] - embedded debugger for Windows 10 ([openocd-0.10.0-dev-00247-g73b676c.7z])
+* [WinAVR] - firmware tools for AVR MCU ([WinAVR-20100110-install.exe])
+* [Zadig] - you will need to install libusb in order to run OpenOCD ([zadig-2.3.exe])
+
+## Hardware
+
+Original Mitosis hardware repository: https://github.com/reversebias/mitosis-hardware
+
+* [ST-LINK/V2][stlink]: $2.54, had in stock (you can also use [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board [instead](https://gojimmypi.blogspot.com/2017/07/BluePill-STM32F103-to-BlackMagic-Probe.html)).
+* [YJ-14015][yj-ali]: nrf51822 modules, 3 pcs: $10.5 ($3.50 * 3), free shipping, need 2/3, so $7.
+* [10 main PCB's][mitosis.zip] from [EasyEDA], $13.32 ($2 + $11.32 for trackable shipping), used 4/10, so $5.32.
+* [3 receiver PCB's][receiver.zip] from [OshPark], $5.40, free shipping, used only 1/3, so $1.80.
+* [Arduino Pro Micro](https://www.aliexpress.com/item/-/32648920631.html) from Aliexpress (price varies from $2.54 to $4), had in stock.
+* [Si2302] mosfets: board survives reverse polarity for a while, you may just [short the pads](https://i.imgur.com/h1Mx8Yw.jpg).
+* [ASMB-MTB1-0A3A2] from Aliexpress (or Cree CLVBA-FKA, or 3 single LEDs, very optional)
+* [AMS1117]: 5v to 3v regulator, had in stock. You probably can use diodes for 2v drop.
+* [1206 4.7k] resistor arrays, 2 pcs: had in stock (taken from an old motherboard).
+* Switches and caps: most of you have more than you can handle.
+
+### Total
+
+* Keyboard: $12.32 ($7 + $5.32) and I got enough PCBs to build 3 and they can reuse receiver.
+* Receiver: $7.84 ($3.50 + $1.80 + $2.54) firmware upgrade to ble and you wouldn't need it at all.
+
+So, about $20 for a single keyboard.
+
+### PCB Manufacturers
+
+* https://oshpark.com - 3 purple receiver PCBs, $5.40, untracked, 21 days
+* http://easyeda.com - 10 green PCBs for $2 + $11.32 shipping = $13.32, trackable, 10 days
+* https://www.elecrow.com - 6 black PCBs for $4.90 + $6.42 shipping = $11.32, trackable, 36 days
+* http://dirtypcbs.com - 10 black for $16.95 + $9.00 shipping = $25.95, untrackable, lost/refunded
+* https://www.seeedstudio.com - 10 black PCBs for $4.90 + $16.50 shipping = $21.40 - untested
+* https://jlcpcb.com - 10 black PCBs for $2 + $10.98 shipping = $12.98 - untested
+
+## Firmware
+
+This fimware uses SDK 12.0.3 because it's the latest SDK with nRF51822 support.
+You need to flash the right half only (the right one should remain stock Mitosis firmware).
+Firmware could NOT be distributed (or merged) along with with softdevice (s130 2.0.1) because
+it would violate Nordic redistribution terms, so flash softdevice first, the same way (just once).
+
+Current firmware version switches into a System Off mode after a few minutes of inactivity to save the battery,
+and wakes up on hardware interrupt (any key, usually you press something on a home row).
+
+### Uploading nRF51 Firmware
+
+#### ST-Link V2
+
+To flash nRF modules, connect ST-LINK/V2 to the module programming pins (SWCLK, SWDIO, GND, 3.3V - top to bottom) and run this batch (windows 10):
+
+```
+@echo off
+set path=C:\SDK\openocd-0.10.0-dev-00247-g73b676c\bin-x64;%path%
+set file=%~dp0custom\iar\_build\nrf51822_xxac.hex
+openocd -f interface/stlink-v2.cfg -f target/nrf51.cfg ^
+-c init -c "reset halt" -c "flash write_image erase %file:\=/%" -c reset -c exit
+
+```
+
+#### BluePill
+
+This is basically an [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board (STM32F103C8T6) that you can use as an ST-Link V2 replacement.
+No OpenOCD needed.
+You need to flash the programmer firmware ([Blackmagic](https://github.com/blacksphere/blackmagic)) first.
+Most likely you get 64K device (page is not writeable, etc.) so just run STM32 Flash loader GUI,
+hook up STM32F103 via UART ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg)), force select 128K device, 0x08002000, and flash blackmagic.bin from there.
+Then unplug UART and hook up nRF51 ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg)).
+
+* https://gojimmypi.blogspot.com/2017/07/BluePill-STM32F103-to-BlackMagic-Probe.html (detailed instructions)
+* https://www.st.com/en/development-tools/flasher-stm32.html (STM32 Flash loader)
+
+Note that if you use Bluetooth (e.g. s130) you need to use mergehex utility from the 
+[nRF5x Command Line Tools](http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.tools%2Fdita%2Ftools%2Fnrf5x_command_line_tools%2Fnrf5x_installation.html):
+
+```
+mergehex.exe -m s130.hex mitosis.hex -o out.hex
+```
+
+Then use arm-none-eabi-gdb for uploading (you can find it in the Arduino IDE folders, with the nRF51 board installed):
+
+```
+arm-none-eabi-gdb.exe -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" ^
+-ex "mon erase_mass" –ex "load out.hex" –ex "quit"
+
+```
+
+Then disconnect the programmer and reconnect power, or run the program from the GDB prompt - "load out.hex", "run".
+
+## Default Layout (Mitosis-BT)
+
+* Press <kbd>Adjust</kbd> + <kbd>←</kbd> <kbd>↓</kbd> <kbd>↑</kbd> <kbd>→</kbd> to switch between three Bluetooth devices and a receiver
+* Press <kbd>Fn</kbd> + <kbd>Adjust</kbd> + <kbd>←</kbd> <kbd>↓</kbd> <kbd>↑</kbd> <kbd>→</kbd> to reset three corresponding Bluetooth devices or erase all bonds
+
+
+[![](https://kle-render.herokuapp.com/api/3f5dd1c848bb9a7a723161ad5e0c8e39?6)](http://www.keyboard-layout-editor.com/#/gists/3f5dd1c848bb9a7a723161ad5e0c8e39)
+
+
+
+## Building
+
+### IAR
+
+Open mitosis-bluetooth.eww, hit Make, that's it.
+I'm using a single plate (reversed) version for
+the Debug configuration (modules soldered to the top of the PCB),
+to debug standard version remove `COMPILE_REVERSED` from the preprocessor directives or switch
+to Release configuration.
+
+### GCC
+
+As usual, change directory to custom/armgcc, make.
+Working GCC linker settings for softdevice s130 2.0.0 and [YJ-14015] modules (256K ROM, 16K RAM) appear to be:
+```
+  FLASH (rx) : ORIGIN = 0x1b000, LENGTH = 0x25000
+  RAM (rwx) :  ORIGIN = 0x20002000, LENGTH = 0x2000
+```
+
+To build with this settings, set stack and heap to 1024 or something in gcc_startup_nrf51.S (originally 2048). Erasing the chip and flashing merged hex also might help. You could also use Makefile:
+
+```
+ASMFLAGS += -D__HEAP_SIZE=1024 -D__STACK_SIZE=1024
+```
+
+## Debugging
+
+You can hook up a single UART RX pin at 115200 baud ([currently pin 21, key S15 or S23](https://i.imgur.com/apx8W8W.png)).
+You will also need common GND and VCC to make it work. It doesn't really interfere much with the keyboard matrix so you can use any pin you want,
+just don't use the same pin for TX and RX to avoid feedback.
+
+You can also use [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board,
+upgrade it with UART adapter ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg))
+into a [Blackmagic] board,
+and use it as an [ST-LINK/V2] replacement ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg)).
+It is actually much better because it also has a built in UART ([pin A3][pinout])
+on the second virtual COM port so you don't need another USB.
+See https://github.com/joric/mitosis/tree/devel#bluepill
+
+I'm using [nRF5 SDK 11] (mostly because original Mitosis using it).
+There's no softdevice s110 support so we are limited to 6K RAM.
+Bluetooth devices seem to shutdown and restart a lot (sleep mode is actually power off mode
+with a hardware interrupt from the pin that restarts the device).
+
+There is a built in app_trace_log but it doesn't work with GCC (probably lacks free memory)
+so I had to write a small drop-in replacement, but in IAR you can just use the following preprocessor
+directives (the last one is optional if it's too verbose):
+
+```
+DEBUG
+NRF_LOG_USES_UART=1
+NRF_LOG_ENABLED=1
+ENABLE_DEBUG_LOG_SUPPORT=1
+DM_DISABLE_LOGS=1
+```
+
+## Status
+
+### Works
+
+* Bluetooth and Gazell timesharing
+* Battery level reporting via Bluetooth
+* Debugging via UART
+* Basic QMK layout support
+* Bluetooth pairing shortcut
+* Switching between RF and Bluetooth modes
+* Switching between Bluetooth devices
+
+### TODO
+
+* Full QMK/TMK suport (maybe)
+
+#### QMK support is still in progress (Mitosis-Bluetooth compiles fine without QMK)
+
+QMK firwmare has massive incompatibility issues with ICCARM (IAR) that can't be fixed with preprocessor.
+So it's either a fully-GCC setup (armgcc and maybe uVision Keil) or patching QMK
+(changes are small but I don't know if they ever get merged to the upstream).
+I've patched and compiled QMK for ICCARM but couldn't get correct keycodes so far.
+
+#### QMK incompatibility issues
+
+* Excessive and unnecessary binary literals (e.g. `0b011` is C++14 only), should use hex or decimals
+* GCC-specific switch case ranges (`case A ... Z`, ), should use `if` and `else`
+* GCC-specific `__attribute__` keyword, e.g. `__attribute__ ((weak))`, should use `__WEAK` define
+* Inplace initializations (`#define MACRO(...) ({static const macro_t __m[]; PROGMEM={__VA_ARGS__}; &__m[0]})`)
+
+
+#### Patching QMK for IAR
+
+* add `#ifdef __ICCARM__` for IAR-specific code
+* add `__attribute__(x)=`  to the preprocessor directives, use `__weak` or whatever instead
+* add dummy Atmel-specific variables and functions `PORTF`, `PORTD`, etc.
+
+#### QMK embedding guide
+
+* add `QMK_KEYBOARD_H="your_hardware_name.h"` to the preprocessor directives
+* add `#include "keyboard.h"`, add QMK paths (quantum/, tmk_core/common/, etc.)
+* implement `timer_read32()` if it's incompatible (e.g. use `app_timer_cnt_get` for nrf5x)
+* implement `matrix_row_t matrix_get_row(uint8_t row)` callback (just read from array)
+* implement host driver callbacks, add `host_set_driver(&driver)` to the init sequence
+* add `keyboard_task()` to the main loop
+
+See this GCC-only TMK core-based project for example (all API calls are precisely the same):
+
+* https://github.com/Lotlab/nrf51822-keyboard
+
+## References
+
+* [My fork of the Mitosis repository (bonus documentation included)](https://github.com/joric/mitosis/tree/devel)
+* [Reddit thread](https://redd.it/91s4pu)
+
+[mitosis-bt.hex]: https://raw.githubusercontent.com/joric/mitosis/devel/precompiled/mitosis-bt.hex
+[ST-LINK/V2]: http://www.ebay.com/itm/331803020521
+[OpenOCD]: http://www.freddiechopin.info/en/download/category/10-openocd-dev
+[YJ-14015]: https://www.ebay.com/itm/282575577879
+[Blackmagic]: https://gojimmypi.blogspot.com/2017/07/BluePill-STM32F103-to-BlackMagic-Probe.html
+[nRF5 SDK 11]: https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v11.x.x/nRF5_SDK_11.0.0_89a8197.zip
+[pinout]: https://i.imgur.com/apx8W8W.png
+[RAM]: https://devzone.nordicsemi.com/b/blog/posts/rom-and-ram-management
+[EasyEDA]: https://easyeda.com
+[OshPark]: https://oshpark.com
+[ASMB-MTB1-0A3A2]: https://www.aliexpress.com/item/-/32809898075.html
+[Si2302]: https://www.aliexpress.com/item/-/32883659198.html
+[mitosis.zip]: https://github.com/reversebias/mitosis-hardware/blob/master/gerbers/mitosis.zip
+[receiver.zip]: https://github.com/reversebias/mitosis-hardware/blob/master/gerbers/receiver.zip
+[stlink]: http://www.ebay.com/itm/331803020521
+[yj-ali]: https://www.aliexpress.com/item/-/32832872640.html
+[yj-ebay]: https://www.ebay.com/itm/282575577879
+[IAR]: https://www.iar.com
+[NRF5 SDK]: https://developer.nordicsemi.com/nRF5_SDK
+[OpenOCD]: http://www.freddiechopin.info/en/download/category/10-openocd-dev
+[WinAVR]: https://sourceforge.net/projects/winavr
+[Zadig]: https://zadig.akeo.ie
+[nRF5_SDK_11.0.0_89a8197.zip]: https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v11.x.x/nRF5_SDK_11.0.0_89a8197.zip
+[openocd-0.10.0-dev-00247-g73b676c.7z]: http://www.freddiechopin.info/en/download/category/10-openocd-dev?download=140%3Aopenocd-0.10.0-dev-00247-g73b676c
+[WinAVR-20100110-install.exe]: https://sourceforge.net/projects/winavr/files/WinAVR/20100110/WinAVR-20100110-install.exe/download
+[zadig-2.3.exe]: https://zadig.akeo.ie/downloads/zadig-2.3.exe
+[AMS1117]: https://www.aliexpress.com/item/-/32826077143.html
+[1206 4.7k]: https://www.aliexpress.com/item/-/32853745131.html
+
