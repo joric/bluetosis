@@ -1,4 +1,4 @@
-# Mitosis-Bluetooth
+# Bluetosis
 
 Bluetooth firmware for the Mitosis keyboard
 
@@ -71,7 +71,7 @@ Mind that symlink or junction won't work on Windows 10 for some reason (GCC Make
 
 ### IAR
 
-Open mitosis-bluetooth.eww, hit Make, that's it.
+Open .eww, hit Make, that's it.
 I'm using a single plate (reversed) version for
 the debug configuration (modules soldered to the top of the PCB),
 to build standard version remove `COMPILE_REVERSED` from defines.

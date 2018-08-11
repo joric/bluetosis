@@ -1,4 +1,4 @@
-PROJECT_NAME     := mitosis_bluetooth
+PROJECT_NAME     := bluetosis
 TARGETS          := nrf51822_xxac
 OUTPUT_DIRECTORY := _build
 
