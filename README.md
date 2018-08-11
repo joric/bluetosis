@@ -1,13 +1,23 @@
 # Mitosis-Bluetooth
 
-Bluetooth firmware for the Mitosis keyboard (BLE and Gazell timesharing via timeslot API)
+Bluetooth firmware for the Mitosis keyboard
 
 ## Firmware
 
+* Download the latest .hex file from the [releases section](https://github.com/joric/mitosis-bluetooth/releases).
+* Download softdevice s130 2.0.1 from the [Nordic site](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724).
+
 This fimware uses SDK 12.0.3 because it's the latest SDK with nRF51822 support.
-You need to flash the right half only (the right one should remain stock Mitosis firmware).
-Firmware could NOT be distributed (or merged) along with with softdevice (s130 2.0.1) because
-it would violate Nordic redistribution terms, so flash softdevice first, the same way (just once).
+You need to flash the right half only (the left one remains stock Mitosis firmware).
+Firmware could NOT be distributed (or merged) with softdevice (s130 2.0.1) because
+it violates Nordic redistribution terms, so flash softdevice first (the same way as firmware, but you need to do it just once).
+
+## Default Layout (Mitosis-BT)
+
+* Press <kbd>Adjust</kbd> + <kbd>←</kbd> <kbd>↓</kbd> <kbd>↑</kbd> <kbd>→</kbd> to switch between three Bluetooth devices and a receiver
+* Press <kbd>Fn</kbd> + <kbd>Adjust</kbd> + <kbd>←</kbd> <kbd>↓</kbd> <kbd>↑</kbd> <kbd>→</kbd> to reset three corresponding Bluetooth devices or erase all bonds
+
+[![](https://kle-render.herokuapp.com/api/3f5dd1c848bb9a7a723161ad5e0c8e39?6)](http://www.keyboard-layout-editor.com/#/gists/3f5dd1c848bb9a7a723161ad5e0c8e39)
 
 Current firmware version switches into a System Off mode after a few minutes of inactivity to save the battery,
 and wakes up on hardware interrupt (any key, usually you press something on a home row).
@@ -29,60 +39,55 @@ openocd -f interface/stlink-v2.cfg -f target/nrf51.cfg ^
 
 #### BluePill
 
-This is basically an [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board (STM32F103C8T6) that you can use as an ST-Link V2 replacement.
-No OpenOCD needed.
+This is basically an [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board (STM32F103C8T6)
+that you can use as an ST-Link V2 replacement. No OpenOCD needed.
 You need to flash the programmer firmware ([Blackmagic](https://github.com/blacksphere/blackmagic)) first.
-Most likely you get 64K device (page is not writeable, etc.) so just run STM32 Flash loader GUI,
-hook up STM32F103 via UART ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg)), force select 128K device, 0x08002000, and flash blackmagic.bin from there.
-Then unplug UART and hook up nRF51 ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg)).
 
-* https://gojimmypi.blogspot.com/2017/07/BluePill-STM32F103-to-BlackMagic-Probe.html (detailed instructions)
-* https://www.st.com/en/development-tools/flasher-stm32.html (STM32 Flash loader)
+* download [Demonstrator GUI](https://www.st.com/en/development-tools/flasher-stm32.html) from ST-LINK
+* set jumpers to 0-1 0-0, hook up UART ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg))
+* open the latest `blackmagic.bin` built with `make clean && make PROBE_HOST=stlink` 
+* force select 128K device, select offset 0x08002000, hit Flash
+* set jumpers to 0-0 0-0, hook up your favoirite SWD board ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg))
+* get the latest [zadig](https://zadig.akeo.ie/), update all drivers to libusbK or something
+* run something like `arm-none-eabi-gdb --quiet --batch -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" –ex "load nrf51822_xxac.hex" –ex kill`
 
-Note that if you use Bluetooth (e.g. s130) you need to use mergehex utility from the 
+You also can merge softdevice s130 using mergehex utility from the 
 [nRF5x Command Line Tools](http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.tools%2Fdita%2Ftools%2Fnrf5x_command_line_tools%2Fnrf5x_installation.html):
-
 ```
-mergehex.exe -m s130.hex mitosis.hex -o out.hex
+mergehex.exe -m s130_nrf51_2.0.1_softdevice.hex nrf51822_xxac.hex -o out.hex
 ```
-
-Then use arm-none-eabi-gdb for uploading (you can find it in the Arduino IDE folders, with the nRF51 board installed):
-
-```
-arm-none-eabi-gdb.exe -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" ^
--ex "mon erase_mass" –ex "load out.hex" –ex "kill"
-```
-
-Then disconnect the programmer and reconnect power, or run the program from the GDB prompt - "load out.hex", "run".
-
-## Default Layout (Mitosis-BT)
-
-* Press <kbd>Adjust</kbd> + <kbd>←</kbd> <kbd>↓</kbd> <kbd>↑</kbd> <kbd>→</kbd> to switch between three Bluetooth devices and a receiver
-* Press <kbd>Fn</kbd> + <kbd>Adjust</kbd> + <kbd>←</kbd> <kbd>↓</kbd> <kbd>↑</kbd> <kbd>→</kbd> to reset three corresponding Bluetooth devices or erase all bonds
-
-
-[![](https://kle-render.herokuapp.com/api/3f5dd1c848bb9a7a723161ad5e0c8e39?6)](http://www.keyboard-layout-editor.com/#/gists/3f5dd1c848bb9a7a723161ad5e0c8e39)
 
 ## Building
+
+Copy this repository to the `nRF5_SDK_12/mitosis-bluetooth` folder.
+
+Mind that symlink or junction won't work on Windows 10 for some reason (GCC Makefile error `... is a directory. stop`).
 
 ### IAR
 
 Open mitosis-bluetooth.eww, hit Make, that's it.
 I'm using a single plate (reversed) version for
-the Debug configuration (modules soldered to the top of the PCB),
-to debug standard version remove `COMPILE_REVERSED` from the preprocessor directives or switch
-to Release configuration.
+the debug configuration (modules soldered to the top of the PCB),
+to build standard version remove `COMPILE_REVERSED` from defines.
 
 ### GCC
 
-As usual, change directory to custom/armgcc, make.
-Working GCC linker settings for softdevice s130 2.0.0 and [YJ-14015] modules (256K ROM, 16K RAM) appear to be:
+```
+sudo apt install openocd gcc-arm-none-eabi
+(edit nRF5_SDK_12/components/toolchain/gcc/Makefile.posix, set GNU_INSTALL_ROOT := /usr/)
+cd nRF5_SDK_12
+git clone https://github.com/joric/mitosis-bluetooth && cd mitosis-bluetooth
+cd firmware/custom/armgcc && make
+```
+
+Working GCC linker settings for softdevice s130 2.0.1 and [YJ-14015] modules (256K ROM, 16K RAM) appear to be:
 ```
   FLASH (rx) : ORIGIN = 0x1b000, LENGTH = 0x25000
   RAM (rwx) :  ORIGIN = 0x20002000, LENGTH = 0x2000
 ```
 
-To build with this settings, set stack and heap to 1024 or something in gcc_startup_nrf51.S (originally 2048). Erasing the chip and flashing merged hex also might help. You could also use Makefile:
+To build with this settings, set stack and heap to 1024 or something in `gcc_startup_nrf51.S` (originally 2048).
+You could also use Makefile defines:
 
 ```
 ASMFLAGS += -D__HEAP_SIZE=1024 -D__STACK_SIZE=1024
@@ -113,18 +118,10 @@ Mind that Bluetooth devices seem to shutdown and restart a lot (sleep mode is ac
 with a hardware interrupt from the pin that restarts the device).
 
 There is a built in app_trace_log but it doesn't work with GCC (probably lacks free memory)
-so I had to write a small drop-in replacement, but in IAR you can just use the following preprocessor
-directives (the last one is optional if it's too verbose):
-
-```
-DEBUG
-NRF_LOG_USES_UART=1
-NRF_LOG_ENABLED=1
-ENABLE_DEBUG_LOG_SUPPORT=1
-DM_DISABLE_LOGS=1
-```
-
-In the latest SDK you can use NRF_LOG_ENABLED and NRF_LOG_USES_UART in sdk-config.h (UART settings are there too).
+so I had to write a small drop-in replacement, but in IAR in the latest SDK you can try using
+`NRF_LOG_ENABLED` and `NRF_LOG_USES_UART` in `sdk-config.h`.
+Mind that debugging UART has it's own pin settings nearby
+(not the ones that are already defined in the `custom_board.h`).
 
 ## Status
 
@@ -292,6 +289,7 @@ on each side (58 total) if you manage to layout them without crossing.
 ## References
 
 * [My fork of the Mitosis repository (bonus documentation included)](https://github.com/joric/mitosis/tree/devel)
+* [Mitosis bluetooth firmware for SDK 11 (now deprecated)](https://github.com/joric/mitosis/tree/devel/mitosis-bluetooth)
 * [Reddit thread](https://redd.it/91s4pu)
 
 [mitosis-bt.hex]: https://raw.githubusercontent.com/joric/mitosis/devel/precompiled/mitosis-bt.hex
