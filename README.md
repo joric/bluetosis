@@ -2,10 +2,6 @@
 
 Bluetooth firmware for the Mitosis keyboard (BLE and Gazell timesharing via timeslot API)
 
-## Video
-
-[![](http://img.youtube.com/vi/Qv22OyWb81g/0.jpg)](https://youtu.be/Qv22OyWb81g)
-
 ## Firmware
 
 This fimware uses SDK 12.0.3 because it's the latest SDK with nRF51822 support.
