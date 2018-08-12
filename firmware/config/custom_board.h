@@ -37,8 +37,8 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#ifndef PCA10028_H
-#define PCA10028_H
+#ifndef CUSTOM_H
+#define CUSTOM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,33 +46,64 @@ extern "C" {
 
 #include "nrf_gpio.h"
 
-// LEDs definitions for PCA10028
+#ifdef COMPILE_REVERSED
+#define COMPILE_LEFT
+#else
+#define COMPILE_RIGHT
+#endif
+#include "mitosis.h"
+
+// LEDs definitions
+
+/*
+BSP_INDICATE_IDLE                   All LEDs are off
+BSP_INDICATE_SCANNING               LED 1 is blinking (period 2 sec, duty cycle: 10%)
+BSP_INDICATE_ADVERTISING            LED 1 is blinking (period 2 sec, duty cycle: 10%)
+BSP_INDICATE_ADVERTISING_WHITELIST  LED 1 is blinking fast (period 1 sec, duty cycle: 20%)
+BSP_INDICATE_ADVERTISING_SLOW       LED 1 is blinking slowly (period 4.4 sec, duty cycle: 10%)
+BSP_INDICATE_ADVERTISING_DIRECTED   LED 1 is blinking very fast (period 0.6 sec, duty cycle: 50%)
+BSP_INDICATE_BONDING                LED 1 is blinking (period 200 msec, duty cycle: 50%)
+BSP_INDICATE_CONNECTED              LED 1 is on
+*/
+
 #define LEDS_NUMBER    4
 
-#define LED_START      21
-#define LED_1          21
-#define LED_2          22
-#define LED_3          23
-#define LED_4          24
-#define LED_STOP       24
+#define LED_START      LED_PIN
+#define LED_1          LED_PIN
+#define LED_STOP       LED_PIN
 
 #define LEDS_ACTIVE_STATE 0
 
-#define LEDS_LIST { LED_1, LED_2, LED_3, LED_4 }
+#define LEDS_LIST { LED_1 }
 
-#define LEDS_INV_MASK  LEDS_MASK
+#define LEDS_INV_MASK  LEDS_MASK // set to 0 to invert LEDs behavior
 
 #define BSP_LED_0      LED_1
-#define BSP_LED_1      LED_2
-#define BSP_LED_2      LED_3
-#define BSP_LED_3      LED_4
+
+// Buttons definitions
+
+/*
+During advertising or scanning:
+Button 1: Sleep (if not also in a connection)
+Button 2 long push: Turn off whitelist.
+
+During sleep:
+Button 1: Wake up.
+Button 2: Wake up and delete bond information.
+
+During connection:
+Button 1 long push: Disconnect.
+Push and release on all buttons: Application-specific.
+*/
+
+// pins 28/29 are unused on mitosis, you may use those
 
 #define BUTTONS_NUMBER 2
 
-#define BUTTON_START   11
-#define BUTTON_1       11
-#define BUTTON_2       12
-#define BUTTON_STOP    12
+#define BUTTON_START   S01
+#define BUTTON_1       S01
+#define BUTTON_2       S02
+#define BUTTON_STOP    S02
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
 #define BUTTONS_ACTIVE_STATE 0
@@ -173,4 +204,4 @@ extern "C" {
 }
 #endif
 
-#endif // PCA10028_H
+#endif // CUSTOM_H

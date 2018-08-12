@@ -722,8 +722,6 @@ uint8_t get_modifier(uint16_t key)
 
 void key_handler()
 {
-    printf("key_handler %d %d\n", (int)keys_recv, (int)keys);
-
     if (running_mode == GAZELL)
         return;
 
@@ -780,29 +778,17 @@ void key_handler()
         uint32_t err_code = ble_hids_inp_rep_send(&m_hids, INPUT_REPORT_KEYS_INDEX, INPUT_REPORT_KEYS_MAX_LEN, buf);
         APP_ERROR_CHECK(err_code);
     }
-
+    else
+    {
+        printf("key_handler %d %d\n", (int)keys_recv, (int)keys);
+    }
 }
 
 
 void keyboard_task()
 {
     keys_snapshot = read_keys();
-
-    if (keys != keys_snapshot)
-    {
-        keys = keys_snapshot;
-        send_data();
-        hardware_keys();
-        key_handler();
-    }
-
-    keys_recv = data_payload_left[0] | (data_payload_left[1] << 8) | (data_payload_left[2] << 16);
-
-    if (keys_recv != keys_recv_snapshot)
-    {
-        keys_recv_snapshot = keys_recv;
-        key_handler();
-    }
+    keys_recv_snapshot = data_payload_left[0] | (data_payload_left[1] << 8) | (data_payload_left[2] << 16);
 
     if (keys == keys_snapshot && keys_recv == keys_recv_snapshot)
     {
@@ -817,6 +803,20 @@ void keyboard_task()
     else
     {
         activity_ticks = 0;
+    }
+
+    if (keys != keys_snapshot)
+    {
+        keys = keys_snapshot;
+        send_data();
+        hardware_keys();
+        key_handler();
+    }
+
+    if (keys_recv != keys_recv_snapshot)
+    {
+        keys_recv = keys_recv_snapshot;
+        key_handler();
     }
 }
 

@@ -45,9 +45,9 @@ openocd -f interface/stlink-v2.cfg -f target/nrf51.cfg ^
 
 ### BluePill
 
-This is basically an [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board (STM32F103C8T6)
+This is basically an [$1.80][Bluepill] STM32 board (STM32F103C8T6)
 that you can use as an ST-Link V2 replacement. No OpenOCD needed.
-You need to flash the programmer firmware ([Blackmagic](https://github.com/blacksphere/blackmagic)) first.
+You need to flash the programmer firmware ([Blackmagic]) first.
 
 * download [Demonstrator GUI](https://www.st.com/en/development-tools/flasher-stm32.html) from ST-LINK
 * set jumpers to 0-1 0-0, hook up UART ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg))
@@ -57,8 +57,9 @@ You need to flash the programmer firmware ([Blackmagic](https://github.com/black
 * get the latest [zadig](https://zadig.akeo.ie/), update all drivers to libusbK or something
 * run something like `arm-none-eabi-gdb --quiet --batch -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" –ex "load nrf51822_xxac.hex" –ex kill`
 
-You also can merge softdevice s130 using mergehex utility from the 
-[nRF5x Command Line Tools](http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.tools%2Fdita%2Ftools%2Fnrf5x_command_line_tools%2Fnrf5x_installation.html):
+You can also merge softdevice using mergehex utility from the 
+[nRF5x Command Line Tools](http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.tools%2Fdita%2Ftools%2Fnrf5x_command_line_tools%2Fnrf5x_installation.html)
+but it's faster to just flash it once.
 ```
 mergehex.exe -m s130_nrf51_2.0.1_softdevice.hex nrf51822_xxac.hex -o out.hex
 ```
@@ -101,6 +102,12 @@ ASMFLAGS += -D__HEAP_SIZE=1024 -D__STACK_SIZE=1024
 
 ## Debugging
 
+There is a built in `NRF_LOG` in Nordic SDK but it doesn't work with GCC (probably no memory).
+I had to write a small drop-in replacement. In IAR you can try using `NRF_LOG_ENABLED`
+and `NRF_LOG_USES_UART` in `sdk-config.h`.
+Note that built in debugging has its own pin settings in `sdk-config.h`
+(not the ones that are in the `custom_board.h`).
+
 Neither nRF51822 nor ST-Link V2 have SWO pin for printf
 ([there is no tracing hardware in the nRF51 series](https://devzone.nordicsemi.com/f/nordic-q-a/1875/nrf51822---debug-output-via-j-link-swo)),
 so I had to use UART. You only need ONE pin to print messages via UART (e.g. using Arduino IDE Serial Monitor).
@@ -111,23 +118,10 @@ Hook up a single UART RX pin at 115200 baud ([currently pin 21, key S15 or S23](
 You will also need common GND and VCC to make it work. It doesn't really interfere much with the keyboard matrix so you can use any pin you want,
 just don't use the same pin for TX and RX to avoid feedback.
 
-You can also use [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board,
-upgrade it with UART adapter ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg))
-into a [Blackmagic] board,
-and use it as an [ST-LINK/V2] replacement ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg)).
-It is actually much better because it also has a built in UART ([pin A3][pinout])
+You can also use [Blackmagic] probe for debugging. It is actually the best because it has a built in UART ([pin A3][pinout])
 on the second virtual COM port so you won't need another USB.
-
-There's no softdevice s110 support in the latest SDK so we are limited to 6K RAM out of 16K
-(10K is occupied by softdevice s130).
-Mind that Bluetooth devices seem to shutdown and restart a lot (sleep mode is actually power off mode
-with a hardware interrupt from the pin that restarts the device).
-
-There is a built in app_trace_log but it doesn't work with GCC (probably lacks free memory)
-so I had to write a small drop-in replacement, but in IAR in the latest SDK you can try using
-`NRF_LOG_ENABLED` and `NRF_LOG_USES_UART` in `sdk-config.h`.
-Mind that debugging UART has it's own pin settings nearby
-(not the ones that are already defined in the `custom_board.h`).
+I personally use [Bluepill] board with Blackmagic firmware as a programmer and a debugger and Putty with enabled local echo
+as a serial monitor.
 
 ## Status
 
@@ -285,6 +279,8 @@ on each side (58 total) if you manage to layout them without crossing.
 * [Mitosis bluetooth firmware for SDK 11 (now deprecated)](https://github.com/joric/mitosis/tree/devel/mitosis-bluetooth)
 * [Reddit thread](https://redd.it/91s4pu)
 
+[Blackmagic]: https://github.com/blacksphere/blackmagic
+[Bluepill]: https://www.aliexpress.com/item//32583160323.html
 [mitosis-bt.hex]: https://raw.githubusercontent.com/joric/mitosis/devel/precompiled/mitosis-bt.hex
 [ST-LINK/V2]: http://www.ebay.com/itm/331803020521
 [OpenOCD]: http://www.freddiechopin.info/en/download/category/10-openocd-dev
