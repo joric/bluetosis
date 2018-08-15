@@ -1,6 +1,6 @@
 @echo off
 
-if "%1"=="reversed" set USER_DEFINES=-DCOMPILE_REVERSED=1
+if exist ".reversed" set USER_DEFINES=-DCOMPILE_REVERSED=1
 
 set option=1
 
@@ -22,5 +22,7 @@ cd custom\armgcc && bash -c "make USER_DEFINES=%USER_DEFINES%" && cd /d %~dp0 ||
 goto publish
 
 :publish
+
+call program.cmd
 
 :end

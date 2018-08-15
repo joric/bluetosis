@@ -792,7 +792,7 @@
             <archiveVersion>1</archiveVersion>
             <data>
                 <prebuild></prebuild>
-                <postbuild>D:\Projects\mitosis-keyboard\nRF5_SDK_12.3.0_d7731ad\mitosis\mitosis-bluetooth\program.cmd</postbuild>
+                <postbuild>$PROJ_DIR$\..\..\program.cmd</postbuild>
             </data>
         </settings>
         <settings>
@@ -928,8 +928,8 @@
                 </option>
                 <option>
                     <name>IlinkAdditionalLibs</name>
-                    <state>D:\Projects\mitosis-keyboard\nRF5_SDK_12.3.0_d7731ad\components\proprietary_rf\gzll\iar\gzll_nrf51_iar.a</state>
-                    <state>D:\Projects\mitosis-keyboard\nRF5_SDK_12.3.0_d7731ad\components\proprietary_rf\gzll\iar\gzll_nrf51_sd_resource_iar.a</state>
+                    <state>$PROJ_DIR$\..\..\..\..\components\proprietary_rf\gzll\iar\gzll_nrf51_iar.a</state>
+                    <state>$PROJ_DIR$\..\..\..\..\components\proprietary_rf\gzll\iar\gzll_nrf51_sd_resource_iar.a</state>
                 </option>
                 <option>
                     <name>IlinkOverrideProgramEntryLabel</name>
