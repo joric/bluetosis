@@ -100,10 +100,10 @@ Push and release on all buttons: Application-specific.
 
 #define BUTTONS_NUMBER 2
 
-#define BUTTON_START   S01
-#define BUTTON_1       S01
-#define BUTTON_2       S02
-#define BUTTON_STOP    S02
+#define BUTTON_START   28
+#define BUTTON_1       28
+#define BUTTON_2       29
+#define BUTTON_STOP    29
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
 #define BUTTONS_ACTIVE_STATE 0

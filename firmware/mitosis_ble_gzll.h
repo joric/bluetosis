@@ -85,6 +85,9 @@ uint32_t debug_init()
 
 #endif // SIMPLE_DEBUG
 
+#define ADDR_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
+#define ADDR_T(a) a[5], a[4], a[3], a[2], a[1], a[0]
+
 // Define payload length
 #define TX_PAYLOAD_LENGTH 3 ///< 3 byte payload length when transmitting
 
@@ -415,7 +418,10 @@ uint32_t gazell_sd_radio_init(void)
 void nrf_gzll_device_tx_success(uint32_t pipe, nrf_gzll_device_tx_info_t tx_info)
 {
     if (running_mode == BLE)
+    {
         return;
+    }
+
     uint32_t ack_payload_length = NRF_GZLL_CONST_MAX_PAYLOAD_LENGTH;
     if (tx_info.payload_received_in_ack)
     {
@@ -433,7 +439,9 @@ void nrf_gzll_device_tx_failed(uint32_t pipe, nrf_gzll_device_tx_info_t tx_info)
 void nrf_gzll_host_rx_data_ready(uint32_t pipe, nrf_gzll_host_rx_info_t rx_info)
 {
     if (running_mode == GAZELL)
+    {
         return;
+    }
 
     //printf("gzll data received\n");
 
@@ -619,9 +627,98 @@ static bool m_delayed_reset = false;
 pm_peer_id_t switch_peers[PEERS_COUNT];
 
 
+static uint32_t advertising_restart(ble_adv_mode_t mode)
+{
+    uint32_t err_code;
+
+    if (m_conn_handle == BLE_CONN_HANDLE_INVALID) {
+        sd_ble_gap_adv_stop();
+        err_code = ble_advertising_start(mode);
+        ble_advertising_restart_without_whitelist();
+    } else {
+        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+        ble_advertising_restart_without_whitelist();
+    }
+    return err_code;
+}
+
+
 static void switch_update(pm_peer_id_t peer_id)
 {
+    printf("switch_update\n");
+
     switch_peers[switch_index] = peer_id;
+
+    uint32_t err_code;
+    ble_gap_addr_t gap_addr;
+    uint16_t length = 8;
+    uint8_t addr[8];
+
+    err_code = pm_id_addr_get(&gap_addr);
+    APP_ERROR_CHECK(err_code);
+
+    for(uint8_t i=0; i<BLE_GAP_ADDR_LEN; i++)
+        addr[i] = gap_addr.addr[i];
+
+    printf("storing address: " ADDR_FMT "\n", ADDR_T(addr));
+
+    err_code = pm_peer_data_app_data_store(m_peer_id, addr, length, NULL);
+    APP_ERROR_CHECK(err_code);
+}
+
+
+static void switch_select(uint8_t index)
+{
+    printf("switch_select: %d\n", (int)index);
+
+    switch_index = index;
+    savedata.index = switch_index;
+    eeprom_write();
+
+    uint32_t err_code;
+    ble_gap_addr_t gap_addr;
+    err_code = pm_id_addr_get(&gap_addr);
+    APP_ERROR_CHECK(err_code);
+
+    gap_addr.addr[3] = index; // switch status 1, 2, or 3
+
+    printf("setting address: " ADDR_FMT "\n", ADDR_T(gap_addr.addr));
+
+    err_code = pm_id_addr_set(&gap_addr);
+    APP_ERROR_CHECK(err_code);
+}
+
+
+static void peer_list_find_and_delete_bonds(void)
+{
+    pm_peer_id_t peer_id;
+
+    peer_id = pm_next_peer_id_get(PM_PEER_ID_INVALID);
+
+    while (peer_id != PM_PEER_ID_INVALID)
+    {
+        uint16_t length = 8;
+        uint8_t addr[8];
+            
+        if (pm_peer_data_app_data_load(peer_id, addr, &length) == NRF_SUCCESS)
+        {
+            if (addr[3] == switch_index)
+            {
+                printf("DELETING peer %d\n", peer_id);
+                pm_peer_delete(peer_id);
+            }
+        }
+
+        peer_id = pm_next_peer_id_get(peer_id);
+    }
+}
+
+
+static void switch_reset(int index)
+{
+    printf("switch_reset: %d\n", (int)index);
+    switch_index = index;
+    peer_list_find_and_delete_bonds();
 }
 
 
@@ -629,34 +726,13 @@ static void switch_init()
 {
     eeprom_read();
     switch_index = savedata.index;
-}
 
+    running_mode = (switch_index == RF_INDEX) ? GAZELL : BLE;
 
-static void switch_select(uint8_t index)
-{
-    switch_index = index;
-    savedata.index = switch_index;
-    eeprom_write();
-
-    if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
-        sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-
-    printf("switch_select: %d\n", (int)switch_index);
-}
-
-
-static void switch_reset(int index)
-{
-    switch_index = index;
-
-    if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
-        sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-
-    pm_peer_delete(switch_peers[switch_index]);
-
-    //ble_advertising_start(BLE_ADV_MODE_FAST);
-    //ble_advertising_restart_without_whitelist();
-    printf("switch_reset\n");
+    if (running_mode == BLE)
+    {
+        switch_select(switch_index);
+    }
 }
 
 
@@ -678,12 +754,18 @@ void hardware_keys()
 
         if (index != -1)
         {
-            switch_select(index);
+            printf("INDEX: %d\n", index);
 
             if (keys & (1<<KEY_FN))
             {
                 switch_reset(index);
-                m_delayed_reset = true;
+                switch_select(index);
+                advertising_restart(BLE_ADV_MODE_FAST);
+            }
+            else
+            {
+                switch_select(index);
+                advertising_restart(BLE_ADV_MODE_FAST);
             }
 
             if (running_mode != ((index == RF_INDEX) ? GAZELL : BLE))
@@ -723,7 +805,9 @@ uint8_t get_modifier(uint16_t key)
 void key_handler()
 {
     if (running_mode == GAZELL)
+    {
         return;
+    }
 
     uint8_t buf[8];
     int modifiers = 0;
@@ -775,12 +859,7 @@ void key_handler()
     if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
     {
         //printf("Sending HID report: %02x %02x %02x %02x %02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
-        uint32_t err_code = ble_hids_inp_rep_send(&m_hids, INPUT_REPORT_KEYS_INDEX, INPUT_REPORT_KEYS_MAX_LEN, buf);
-        APP_ERROR_CHECK(err_code);
-    }
-    else
-    {
-        printf("key_handler %d %d\n", (int)keys_recv, (int)keys);
+        ble_hids_inp_rep_send(&m_hids, INPUT_REPORT_KEYS_INDEX, INPUT_REPORT_KEYS_MAX_LEN, buf);
     }
 }
 
@@ -815,6 +894,7 @@ void keyboard_task()
 
     if (keys_recv != keys_recv_snapshot)
     {
+        printf("keys_recv %d\n", (int)keys_recv);
         keys_recv = keys_recv_snapshot;
         key_handler();
     }
@@ -837,8 +917,6 @@ void mitosis_init(bool erase_bonds)
         nrf_gpio_pin_clear(LED_PIN);
         nrf_delay_ms(100);
     }
-
-    running_mode = (switch_index == RF_INDEX && !erase_bonds) ? GAZELL : BLE;
 
     printf(running_mode == GAZELL ? "RECEIVER MODE\n" : "BLUETOOTH MODE\n");
 

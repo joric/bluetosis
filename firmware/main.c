@@ -261,9 +261,8 @@ static void peer_list_get(pm_peer_id_t * p_peers, uint32_t * p_size)
 
     while ((peer_id != PM_PEER_ID_INVALID) && (peers_to_copy--))
     {
-        if (switch_peers[switch_index]==peer_id)
-            p_peers[(*p_size)++] = peer_id;
-
+        printf("Whitelist peer %d, peer id %d\n", (int)*p_size, (int)peer_id);
+        p_peers[(*p_size)++] = peer_id;
         peer_id = pm_next_peer_id_get(peer_id);
     }
 }
@@ -897,7 +896,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
             break; //BLE_ADV_EVT_DIRECTED
 
         case BLE_ADV_EVT_FAST:
-            //NRF_LOG_INFO("BLE_ADV_EVT_FAST\r\n");
+            NRF_LOG_INFO("BLE_ADV_EVT_FAST\r\n");
             err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
             APP_ERROR_CHECK(err_code);
             break; //BLE_ADV_EVT_FAST
