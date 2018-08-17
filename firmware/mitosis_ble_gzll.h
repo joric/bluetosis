@@ -624,21 +624,23 @@ static uint32_t activity_ticks = 0;
 static uint32_t reset_ticks = 0;
 static bool m_delayed_reset = false;
 
-pm_peer_id_t switch_peers[PEERS_COUNT];
 
-
-static uint32_t advertising_restart(ble_adv_mode_t mode)
+static uint32_t advertising_restart(ble_adv_mode_t mode, bool reset)
 {
     uint32_t err_code;
 
     if (m_conn_handle == BLE_CONN_HANDLE_INVALID) {
         sd_ble_gap_adv_stop();
         err_code = ble_advertising_start(mode);
-        ble_advertising_restart_without_whitelist();
     } else {
         err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+    }
+
+    if (reset)
+    {
         ble_advertising_restart_without_whitelist();
     }
+
     return err_code;
 }
 
@@ -646,8 +648,6 @@ static uint32_t advertising_restart(ble_adv_mode_t mode)
 static void switch_update(pm_peer_id_t peer_id)
 {
     printf("switch_update\n");
-
-    switch_peers[switch_index] = peer_id;
 
     uint32_t err_code;
     ble_gap_addr_t gap_addr;
@@ -659,6 +659,8 @@ static void switch_update(pm_peer_id_t peer_id)
 
     for(uint8_t i=0; i<BLE_GAP_ADDR_LEN; i++)
         addr[i] = gap_addr.addr[i];
+
+    addr[3] = switch_index;
 
     printf("storing address: " ADDR_FMT "\n", ADDR_T(addr));
 
@@ -699,9 +701,10 @@ static void peer_list_find_and_delete_bonds(void)
     {
         uint16_t length = 8;
         uint8_t addr[8];
-            
+
         if (pm_peer_data_app_data_load(peer_id, addr, &length) == NRF_SUCCESS)
         {
+            printf ("trying to delete peer id %d stored index %d\n", (int)peer_id, (int)addr[3]);
             if (addr[3] == switch_index)
             {
                 printf("DELETING peer %d\n", peer_id);
@@ -760,12 +763,12 @@ void hardware_keys()
             {
                 switch_reset(index);
                 switch_select(index);
-                advertising_restart(BLE_ADV_MODE_FAST);
+                advertising_restart(BLE_ADV_MODE_FAST, true);
             }
             else
             {
                 switch_select(index);
-                advertising_restart(BLE_ADV_MODE_FAST);
+                advertising_restart(BLE_ADV_MODE_FAST, false);
             }
 
             if (running_mode != ((index == RF_INDEX) ? GAZELL : BLE))

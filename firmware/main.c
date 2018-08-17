@@ -261,8 +261,14 @@ static void peer_list_get(pm_peer_id_t * p_peers, uint32_t * p_size)
 
     while ((peer_id != PM_PEER_ID_INVALID) && (peers_to_copy--))
     {
-        printf("Whitelist peer %d, peer id %d\n", (int)*p_size, (int)peer_id);
-        p_peers[(*p_size)++] = peer_id;
+        // only add peers with selected device index
+        uint16_t length = 8;
+        uint8_t addr[8];
+        if (pm_peer_data_app_data_load(peer_id, addr, &length) == NRF_SUCCESS && addr[3] == switch_index)
+        {
+            p_peers[(*p_size)++] = peer_id;
+        }
+
         peer_id = pm_next_peer_id_get(peer_id);
     }
 }
@@ -933,11 +939,11 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
             err_code = pm_whitelist_get(whitelist_addrs, &addr_cnt,
                                         whitelist_irks,  &irk_cnt);
             APP_ERROR_CHECK(err_code);
-/*
+
             NRF_LOG_DEBUG("pm_whitelist_get returns %d addr in whitelist and %d irk whitelist\r\n",
                            (int)addr_cnt,
                            (int)irk_cnt);
-*/
+
             // Apply the whitelist.
             err_code = ble_advertising_whitelist_reply(whitelist_addrs, addr_cnt,
                                                        whitelist_irks,  irk_cnt);

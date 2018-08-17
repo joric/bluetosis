@@ -8,7 +8,8 @@ Download the latest .hex file from the [releases section](https://github.com/jor
 You need to flash the right half only (the left one uses stock Mitosis firmware).
 Firmware does NOT come with the softdevice because it would violate Nordic redistribution terms.
 Download softdevice s130 2.0.1 from the [Nordic site](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724)
-and flash it the same way as firmware (you need to do it just once).
+and flash it the same way as firmware (you need to do it just once). All fimware updates and softdevice go
+for the right half, left half should be held intact.
 
 ## Default Layout (Mitosis-BT)
 
