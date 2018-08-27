@@ -80,9 +80,10 @@ to build standard version remove `COMPILE_REVERSED` from defines.
 
 ### GCC
 
+Open `nRF5_SDK_12/components/toolchain/gcc/Makefile.posix` make sure that `GNU_INSTALL_ROOT := /usr/`, then:
+
 ```
 sudo apt install openocd gcc-arm-none-eabi
-(edit nRF5_SDK_12/components/toolchain/gcc/Makefile.posix, set GNU_INSTALL_ROOT := /usr/)
 cd nRF5_SDK_12
 git clone https://github.com/joric/bluetosis && cd bluetosis
 cd firmware/custom/armgcc && make
@@ -119,7 +120,7 @@ Hook up a single UART RX pin at 115200 baud ([currently pin 21, key S15 or S23](
 You will also need common GND and VCC to make it work. It doesn't really interfere much with the keyboard matrix so you can use any pin you want,
 just don't use the same pin for TX and RX to avoid feedback.
 
-You can also use [Blackmagic] probe for debugging. It is actually the best because it has a built in UART ([pin A3][pinout])
+You can also use [Blackmagic] probe for debugging. It is actually the best because it has a built in UART ([pin A3][pinout-bmp])
 on the second virtual COM port so you won't need another USB.
 I personally use [Bluepill] board with Blackmagic firmware as a programmer and a debugger and Putty with enabled local echo
 as a serial monitor.
@@ -220,10 +221,7 @@ BlueMicro is open source, official repositories are [BlueMicro_BLE] (firmware) a
 [BlueMicro_BLE]: https://github.com/jpconstantineau/BlueMicro_BLE 
 [NRF52-Board]: https://github.com/jpconstantineau/NRF52-Board
 
-
 ## Hardware
-
-Original Mitosis hardware repository: https://github.com/reversebias/mitosis-hardware
 
 * [ST-LINK/V2][stlink]: $2.54, had in stock (you can also use [$1.80](https://www.aliexpress.com/item//32583160323.html) STM32 board [instead](https://gojimmypi.blogspot.com/2017/07/BluePill-STM32F103-to-BlackMagic-Probe.html)).
 * [YJ-14015][yj-ali]: nrf51822 modules, 3 pcs: $10.5 ($3.50 * 3), free shipping, need 2/3, so $7.
@@ -261,7 +259,12 @@ on each side (58 total) if you manage to layout them without crossing.
 
 * [nRF51822 Core-B Schematics](https://www.waveshare.com/w/upload/5/57/Core51822-Schematic.pdf)
 * [nRF51822 Core-B Pinout](https://www.waveshare.com/img/devkit/accBoard/Core51822-B/Core51822-B-pin.jpg)
-* [Mitosis PCB](https://i.imgur.com/apx8W8W.png)
+
+### Mitosis PCB
+
+* Original Mitosis hardware and PCB repository: https://github.com/reversebias/mitosis-hardware
+
+![Mitosis-PCB](https://i.imgur.com/TDxuXfz.jpg)
 
 ## Mitosis Clones
 
@@ -310,4 +313,4 @@ on each side (58 total) if you manage to layout them without crossing.
 [zadig-2.3.exe]: https://zadig.akeo.ie/downloads/zadig-2.3.exe
 [AMS1117]: https://www.aliexpress.com/item/-/32826077143.html
 [1206 4.7k]: https://www.aliexpress.com/item/-/32853745131.html
-
+[pinout-bmp]: https://i.imgur.com/KtkEpR9.jpg
