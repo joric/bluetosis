@@ -257,6 +257,10 @@ using a keyboard matrix. It is not true. GPIO 26/27 are shared by the 32kHz crys
 and [there are only 31 GPIOs hence PIN31 is not existing](https://devzone.nordicsemi.com/f/nordic-q-a/5674/pin-31-interrupt). So you could only have 29 keys
 on each side (58 total) if you manage to layout them without crossing.
 
+Pins that can be used for side autodetection: 16 (L_S16), 18 (L_S22) (left-only pins); 22 (R_S22), 25 (R_S16) (right-only pins).
+There are 5 unused pins on each side (6 with LEDs): 11, 12, 20, 22, 25 (left, LED pin 23); 11, 12, 16, 18, 20 (right, LED pin 17).
+
+
 * [nRF51822 Core-B Schematics](https://www.waveshare.com/w/upload/5/57/Core51822-Schematic.pdf)
 * [nRF51822 Core-B Pinout](https://www.waveshare.com/img/devkit/accBoard/Core51822-B/Core51822-B-pin.jpg)
 
