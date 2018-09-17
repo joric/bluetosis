@@ -1,15 +1,17 @@
 # Bluetosis
 
-Bluetooth firmware for the Mitosis keyboard
+Bluetooth firmware for the Mitosis keyboard (right half runs Bluetooth client and Gazell host simultaneously)
 
 ## Precompiled Firmware
 
-Download the latest .hex file from the [releases section](https://github.com/joric/bluetosis/releases).
-You need to flash the right half only (the left one uses stock Mitosis firmware).
-Firmware does NOT come with the softdevice because it would violate Nordic redistribution terms.
-Download softdevice s130 2.0.1 from the [Nordic site](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724)
-and flash it the same way as firmware (you need to do it just once). All fimware updates and softdevice go
-for the right half, left half should be held intact.
+Bluetosis firmware does NOT come with the softdevice because it would violate Nordic redistribution terms, download
+softdevice s130 2.0.1 from the [Nordic site](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724)
+and flash it the same way as firmware (you need to do it just once).
+
+* [latest .hex file (Bluetosis releases section)](https://github.com/joric/bluetosis/releases)
+* [nRF5x softdevice s130 2.0.1 (Nordic site)](https://www.nordicsemi.com/eng/nordic/Products/nRF51822/S130-SD-v2/53724)
+
+All fimware updates and softdevice go for the right half of the Mitosis keyboard, left half should be held intact.
 
 ## Default Layout (Mitosis-BT)
 
@@ -17,17 +19,6 @@ for the right half, left half should be held intact.
 * Press <kbd>Fn</kbd> + <kbd>Adjust</kbd> + <kbd>←</kbd> <kbd>↓</kbd> <kbd>↑</kbd> <kbd>→</kbd> to reset three corresponding Bluetooth devices or erase all bonds
 
 [![](https://kle-render.herokuapp.com/api/3f5dd1c848bb9a7a723161ad5e0c8e39?6)](http://www.keyboard-layout-editor.com/#/gists/3f5dd1c848bb9a7a723161ad5e0c8e39)
-
-Current firmware version switches into a System Off mode after a few minutes of inactivity to save the battery,
-and wakes up on hardware interrupt (any key, usually you press something on a home row).
-
-## Software
-
-* [nRF5 SDK] - nRF51/52 toolchain (this version uses [SDK 12.3.0](http://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v12.x.x/nRF5_SDK_12.3.0_d7731ad.zip))
-* [IAR] - IDE that includes a C/C++ compiler (IAR 8.30 for ARM)
-* [OpenOCD] - embedded debugger for Windows 10 ([openocd-0.10.0-dev-00247-g73b676c.7z])
-* [WinAVR] - firmware tools for AVR MCU ([WinAVR-20100110-install.exe])
-* [Zadig] - you will need to install libusb in order to run OpenOCD ([zadig-2.3.exe])
 
 ## Uploading
 
@@ -57,13 +48,6 @@ You need to flash the programmer firmware ([Blackmagic]) first.
 * set jumpers to 0-0 0-0, hook up your favorite SWD board ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg))
 * get the latest [zadig](https://zadig.akeo.ie/), update all drivers to libusbK or something
 * run something like `arm-none-eabi-gdb --quiet --batch -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" –ex "load nrf51822_xxac.hex" –ex kill`
-
-You can also merge softdevice using mergehex utility from the 
-[nRF5x Command Line Tools](http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.tools%2Fdita%2Ftools%2Fnrf5x_command_line_tools%2Fnrf5x_installation.html)
-but it's faster to just flash it once.
-```
-mergehex.exe -m s130_nrf51_2.0.1_softdevice.hex nrf51822_xxac.hex -o out.hex
-```
 
 ## Building
 
@@ -101,6 +85,16 @@ You could also use Makefile defines:
 ```
 ASMFLAGS += -D__HEAP_SIZE=1024 -D__STACK_SIZE=1024
 ```
+
+### Firmware merging
+
+You can also merge Bluetooth softdevice with Bluetooth firmware using mergehex utility from
+[nRF5x Command Line Tools](http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.tools%2Fdita%2Ftools%2Fnrf5x_command_line_tools%2Fnrf5x_installation.html):
+```
+mergehex.exe -m s130_nrf51_2.0.1_softdevice.hex nrf51822_xxac.hex -o out.hex
+```
+
+But it's much faster and more convenient to flash softdevice just once and do frequent firmware updates.
 
 ## Debugging
 
@@ -174,52 +168,13 @@ See this GCC-only TMK core-based project for example (all API calls are precisel
 
 * https://github.com/Lotlab/nrf51822-keyboard
 
-## Summary
+## Software
 
-Mitosis was NOT a Bluetooth keyboard (until now). It used a proprietary rf-protocol (Gazell) and a dedicated receiver.
-Global layers need two wireless channels: Bluetooth HID and something for the communication between halves.
-Possible solutions are listed below.
-
-### Gazell
-
-There are examples of Bluetooth and Gazell running concurrently (this is what current firmware uses):
-
-* https://github.com/NordicPlayground/nrf51-ble-gzll-device-uart (no Gazell host supported)
-* https://github.com/NordicPlayground/nRF51-multi-role-conn-observer-advertiser (usage of the timeslot API)
-
-### Bluetooth UART service
-
-There are a few split keyboards that successfully run Bluetooth HID and Bluetooth UART service concurrently.
-Most of them use Adafruit nRF52 library and simple sketches written and compiled in Arduino IDE.
-
-#### Arduino nRF5
-
-There is [Arduino-nRF5 by Sandeep Mistry] that supports nRF51.
-You could use [arduino-BLEPeripheral] library for sketches.
-Works fine with BLE400 board ([Arduino IDE setup](https://i.imgur.com/8dfPZFm.jpg), [wiring](https://i.imgur.com/A9QIN2j.jpg)).
-Sadly this library has [multiple issues](https://github.com/sandeepmistry/arduino-BLEPeripheral/issues/160) with Windows 10.
-
-[Arduino-nRF5 by Sandeep Mistry]: https://github.com/sandeepmistry/arduino-nRF5
-[arduino-BLEPeripheral]: https://github.com/sandeepmistry/arduino-BLEPeripheral
-
-#### Arduino nRF52
-
-Note that Arduino nRF52 builds (usually based on [Bluefruit nRF52](https://www.adafruit.com/product/3406) boards)
-are NOT compatible with the Mitosis keyboard (softdevice s132 and all the software is nRF52-only, Mitosis is nRF51-based).
-
-* [Curves - my bluetooth split](https://redd.it/86asf6) by [/u/JKPro777](http://reddit.com/u/JKPro777)
-* [Split Bluetooth Keyboard](https://redd.it/7fdrdz) by [/u/wezfurlong](https://www.reddit.com/u/wezfurlong) ([gist](https://gist.github.com/wez/b30683a4dfa329b86b9e0a2811a8c593))
-
-#### BlueMicro
-
-This is a drop-in Pro Micro replacement that is compatible with Arduino nRF52 boards (it's NOT compatible with nRF51).
-BlueMicro is open source, official repositories are [BlueMicro_BLE] (firmware) and [NRF52-Board] (hardware).
-
-* [Iris gets the BLE treatment](https://redd.it/8rtvi7) by [/u/jpconstantineau](http://reddit.com/u/jpconstantineau)
-* [Ergotravel 2](https://redd.it/8i2twe) by [/u/jpconstantineau](http://reddit.com/u/jpconstantineau)
-
-[BlueMicro_BLE]: https://github.com/jpconstantineau/BlueMicro_BLE 
-[NRF52-Board]: https://github.com/jpconstantineau/NRF52-Board
+* [nRF5 SDK] - nRF51/52 toolchain (this version uses [SDK 12.3.0](http://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v12.x.x/nRF5_SDK_12.3.0_d7731ad.zip))
+* [IAR] - IDE that includes a C/C++ compiler (IAR 8.30 for ARM)
+* [OpenOCD] - embedded debugger for Windows 10 ([openocd-0.10.0-dev-00247-g73b676c.7z])
+* [WinAVR] - firmware tools for AVR MCU ([WinAVR-20100110-install.exe])
+* [Zadig] - you will need to install libusb in order to run OpenOCD ([zadig-2.3.exe])
 
 ## Hardware
 
@@ -280,6 +235,42 @@ There are 5 unused pins on each side (6 with LEDs): 11, 12, 20, 22, 25 (left, LE
 * [Trident](https://github.com/YCF/Trident) by [/u/imFengz](https://www.reddit.com/u/imFengz) (Wireless Let's Split, module and battery placed between the switches) ([Reddit](https://redd.it/6um7eg)) ([Image](https://i.imgur.com/mCTgwu5.png))
 * [Orthrus](https://github.com/bezmi/orthrus) by [/u/bezmi](https://www.reddit.com/u/bezmi) (great 52-key Atreus/Mitosis crossover, KiCad project) ([Reddit](https://redd.it/8txry7)) 
 * [Comet](https://github.com/satt99/comet46-hardware) by [/u/SaT99](https://www.reddit.com/user/SaT999) (Comet46 - split 40% wireless keyboard) ([Gallery](https://imgur.com/a/vs1W5qB)) ([Firmware](https://github.com/satt99/comet46-firmware)) ([Reddit](https://redd.it/8ykwjj))
+
+## Other wireless solutions
+
+### Bluetooth UART service
+
+There are a few split keyboards that successfully run Bluetooth HID and Bluetooth UART service concurrently.
+Most of them use Adafruit nRF52 library and simple sketches written and compiled in Arduino IDE.
+
+#### Arduino nRF5
+
+There is [Arduino-nRF5 by Sandeep Mistry] that supports nRF51.
+You could use [arduino-BLEPeripheral] library for sketches.
+Works fine with BLE400 board ([Arduino IDE setup](https://i.imgur.com/8dfPZFm.jpg), [wiring](https://i.imgur.com/A9QIN2j.jpg)).
+Sadly this library has [multiple issues](https://github.com/sandeepmistry/arduino-BLEPeripheral/issues/160) with Windows 10.
+
+[Arduino-nRF5 by Sandeep Mistry]: https://github.com/sandeepmistry/arduino-nRF5
+[arduino-BLEPeripheral]: https://github.com/sandeepmistry/arduino-BLEPeripheral
+
+#### Arduino nRF52
+
+Note that Arduino nRF52 builds (usually based on [Bluefruit nRF52](https://www.adafruit.com/product/3406) boards)
+are NOT compatible with the Mitosis keyboard (softdevice s132 and all the software is nRF52-only, Mitosis is nRF51-based).
+
+* [Curves - my bluetooth split](https://redd.it/86asf6) by [/u/JKPro777](http://reddit.com/u/JKPro777)
+* [Split Bluetooth Keyboard](https://redd.it/7fdrdz) by [/u/wezfurlong](https://www.reddit.com/u/wezfurlong) ([gist](https://gist.github.com/wez/b30683a4dfa329b86b9e0a2811a8c593))
+
+#### BlueMicro
+
+This is a drop-in Pro Micro replacement that is compatible with Arduino nRF52 boards (it's NOT compatible with nRF51).
+BlueMicro is open source, official repositories are [BlueMicro_BLE] (firmware) and [NRF52-Board] (hardware).
+
+* [Iris gets the BLE treatment](https://redd.it/8rtvi7) by [/u/jpconstantineau](http://reddit.com/u/jpconstantineau)
+* [Ergotravel 2](https://redd.it/8i2twe) by [/u/jpconstantineau](http://reddit.com/u/jpconstantineau)
+
+[BlueMicro_BLE]: https://github.com/jpconstantineau/BlueMicro_BLE 
+[NRF52-Board]: https://github.com/jpconstantineau/NRF52-Board
 
 ## References
 
