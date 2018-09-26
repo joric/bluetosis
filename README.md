@@ -53,6 +53,28 @@ Flashing Bluepill board | Uploading firmware | Debugging firmware
 -|-|-
 ![](https://i.imgur.com/sLyYM27.jpg)|![](https://i.imgur.com/Ikt8yZz.jpg)|![](https://i.imgur.com/KtkEpR9.jpg)
 
+## Debugging
+
+There is a built in `NRF_LOG` in Nordic SDK but it doesn't work with GCC (probably no memory).
+I had to write a small drop-in replacement. In IAR you can try using `NRF_LOG_ENABLED`
+and `NRF_LOG_USES_UART` in `sdk-config.h`.
+Note that built in debugging has its own pin settings in `sdk-config.h`
+(not the ones that are in the `custom_board.h`).
+
+Neither nRF51822 nor ST-Link V2 have SWO pin for printf
+([there is no tracing hardware in the nRF51 series](https://devzone.nordicsemi.com/f/nordic-q-a/1875/nrf51822---debug-output-via-j-link-swo)),
+so I had to use UART. You only need ONE pin to print messages via UART (e.g. using Arduino IDE Serial Monitor).
+There are no free broken out pins on the Mitosis so I've used pin 19 (bottom right key) as TX_PIN_NUMBER
+and it worked.
+
+Hook up a single UART RX pin at 115200 baud ([currently pin 21, key S15 or S23](https://i.imgur.com/apx8W8W.png)).
+You will also need common GND and VCC to make it work. It doesn't really interfere much with the keyboard matrix so you can use any pin you want,
+just don't use the same pin for TX and RX to avoid feedback.
+
+You can also use [Blackmagic] probe for debugging. It is actually the best because it has a built in UART ([pin A3][pinout-bmp])
+on the second virtual COM port so you won't need another USB.
+I personally use [Bluepill] board with Blackmagic firmware as a programmer and a debugger and Putty with enabled local echo
+as a serial monitor.
 
 ## Building
 
@@ -100,29 +122,6 @@ mergehex.exe -m s130_nrf51_2.0.1_softdevice.hex nrf51822_xxac.hex -o out.hex
 ```
 
 But it's much faster and more convenient to flash softdevice just once and do frequent firmware updates.
-
-## Debugging
-
-There is a built in `NRF_LOG` in Nordic SDK but it doesn't work with GCC (probably no memory).
-I had to write a small drop-in replacement. In IAR you can try using `NRF_LOG_ENABLED`
-and `NRF_LOG_USES_UART` in `sdk-config.h`.
-Note that built in debugging has its own pin settings in `sdk-config.h`
-(not the ones that are in the `custom_board.h`).
-
-Neither nRF51822 nor ST-Link V2 have SWO pin for printf
-([there is no tracing hardware in the nRF51 series](https://devzone.nordicsemi.com/f/nordic-q-a/1875/nrf51822---debug-output-via-j-link-swo)),
-so I had to use UART. You only need ONE pin to print messages via UART (e.g. using Arduino IDE Serial Monitor).
-There are no free broken out pins on the Mitosis so I've used pin 19 (bottom right key) as TX_PIN_NUMBER
-and it worked.
-
-Hook up a single UART RX pin at 115200 baud ([currently pin 21, key S15 or S23](https://i.imgur.com/apx8W8W.png)).
-You will also need common GND and VCC to make it work. It doesn't really interfere much with the keyboard matrix so you can use any pin you want,
-just don't use the same pin for TX and RX to avoid feedback.
-
-You can also use [Blackmagic] probe for debugging. It is actually the best because it has a built in UART ([pin A3][pinout-bmp])
-on the second virtual COM port so you won't need another USB.
-I personally use [Bluepill] board with Blackmagic firmware as a programmer and a debugger and Putty with enabled local echo
-as a serial monitor.
 
 ## Status
 
