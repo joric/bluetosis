@@ -38,16 +38,21 @@ openocd -f interface/stlink-v2.cfg -f target/nrf51.cfg ^
 ### BluePill
 
 This is basically an [$1.80][Bluepill] STM32 board (STM32F103C8T6)
-that you can use as an ST-Link V2 replacement. No OpenOCD needed.
+that you can use as an ST-Link V2 replacement.
 You need to flash the programmer firmware ([Blackmagic]) first.
+It creates two virtual ports (GDB and UART for debugging) no OpenOCD needed.
 
-* download [Demonstrator GUI](https://www.st.com/en/development-tools/flasher-stm32.html) from ST-LINK
-* set jumpers to 0-1 0-0, hook up UART ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg))
-* open the latest `blackmagic.bin` built with `make clean && make PROBE_HOST=stlink` 
-* force select 128K device, select offset 0x08002000, hit Flash
-* set jumpers to 0-0 0-0, hook up your favorite SWD board ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg))
-* get the latest [zadig](https://zadig.akeo.ie/), update all drivers to libusbK or something
-* run something like `arm-none-eabi-gdb --quiet --batch -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" –ex "load nrf51822_xxac.hex" –ex kill`
+* set jumpers to 0-1 0-0, download [Demonstrator GUI](https://www.st.com/en/development-tools/flasher-stm32.html) from ST-LINK, hook up UART adapter ([RX - A9, TX - A10](https://i.imgur.com/sLyYM27.jpg))
+* open `blackmagic.bin`, built with `make clean && make PROBE_HOST=stlink`, select 128K device, offset 0x08002000, hit Flash
+* set jumpers to 0-0 0-0, update USB drivers with [zadig](https://zadig.akeo.ie/), hook up production board via SWD ([SWCLK - A5, SWDIO - B14](https://i.imgur.com/Ikt8yZz.jpg))
+* upload production firmware:
+`arm-none-eabi-gdb --quiet --batch -ex "target extended-remote \\.\COM5" -ex "mon swdp_scan" -ex "att 1" –ex "load nrf51822_xxac.hex" –ex kill`
+(considering COM5 is the first virtual port)
+
+Flashing Bluepill board | Uploading firmware | Debugging firmware
+-|-|-
+![](https://i.imgur.com/sLyYM27.jpg)|![](https://i.imgur.com/Ikt8yZz.jpg)|![](https://i.imgur.com/KtkEpR9.jpg)
+
 
 ## Building
 
