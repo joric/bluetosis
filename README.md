@@ -216,12 +216,18 @@ using a keyboard matrix. It is not true. GPIO 26/27 are shared by the 32kHz crys
 and [there are only 31 GPIOs hence PIN31 is not existing](https://devzone.nordicsemi.com/f/nordic-q-a/5674/pin-31-interrupt). So you could only have 29 keys
 on each side (58 total) if you manage to layout them without crossing.
 
-Pins that can be used for side autodetection: 16 (L_S16), 18 (L_S22) (left-only pins); 22 (R_S22), 25 (R_S16) (right-only pins).
-There are 5 unused pins on each side (6 with LEDs): 11, 12, 20, 22, 25 (left, LED pin 23); 11, 12, 16, 18, 20 (right, LED pin 17).
-
-
 * [nRF51822 Core-B Schematics](https://www.waveshare.com/w/upload/5/57/Core51822-Schematic.pdf)
 * [nRF51822 Core-B Pinout](https://www.waveshare.com/img/devkit/accBoard/Core51822-B/Core51822-B-pin.jpg)
+
+Unused pins:
+
+* left pins: 11, 12, 20, 22, 25, LED pin 23
+* right pins: 11, 12, 16, 18, 20, LED pin 17
+
+Pins that may be used for side autodetection:
+
+* left-only pins: 16 (L_S16), 18 (L_S22)
+* right-only pins: 22 (R_S22), 25 (R_S16)
 
 ### Mitosis PCB
 
@@ -239,6 +245,7 @@ There are 5 unused pins on each side (6 with LEDs): 11, 12, 20, 22, 25 (left, LE
 * [Trident](https://github.com/YCF/Trident) by [/u/imFengz](https://www.reddit.com/u/imFengz) (Wireless Let's Split, module and battery placed between the switches) ([Reddit](https://redd.it/6um7eg)) ([Image](https://i.imgur.com/mCTgwu5.png))
 * [Orthrus](https://github.com/bezmi/orthrus) by [/u/bezmi](https://www.reddit.com/u/bezmi) (great 52-key Atreus/Mitosis crossover, KiCad project) ([Reddit](https://redd.it/8txry7)) 
 * [Comet](https://github.com/satt99/comet46-hardware) by [/u/SaT99](https://www.reddit.com/user/SaT999) (Comet46 - split 40% wireless keyboard) ([Gallery](https://imgur.com/a/vs1W5qB)) ([Firmware](https://github.com/satt99/comet46-firmware)) ([Reddit](https://redd.it/8ykwjj))
+* [Redox](https://github.com/mattdibi/redox-keyboard/tree/master/redox-w) by [/u/RedditSchloer](https://www.reddit.com/user/RedditSchloer) (Redox Wireless a.k.a. codename Ultron) ([Reddit](https://www.reddit.com/r/MechanicalKeyboards/comments/7sf0bc/photos_wireless_redox/))
 
 ## Other wireless solutions
 
