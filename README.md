@@ -7,8 +7,11 @@ Bluetooth firmware for the Mitosis keyboard (right half runs Bluetooth client an
 This firmware is not much better than the [original Mitosis firmware](https://github.com/reversebias/mitosis) security-wise.
 Gazel protocol still uses hardcoded 32-bit ID's (0x01020304 and 0x05060708 for the left and the right halves),
 even if you change them in the code they could be bruteforced (at least the left half, right half does not broadcast Gazel traffic in Bluetooth mode).
-There's a better firmware for split keyboards, it uses nRF52832 hardware (NOT Mitosis compatible)
-and BLEUart with 128-bit UUID, see [BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE).
+There's a better Bluetooth firmware for nRF52832-based (NOT Mitosis compatible) split keyboards
+with BLEUart and 128-bit UUID, see [BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE).
+
+Battery life was not really tested but the keyboard turns completely off after a few minutes of inactivity
+and wakes up on hardware interrupt (any key) so it should be fine.
 
 ## Precompiled Firmware
 
