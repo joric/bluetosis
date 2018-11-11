@@ -2,6 +2,13 @@
 
 Bluetooth firmware for the Mitosis keyboard (right half runs Bluetooth client and Gazell host simultaneously)
 
+## Disclaimer
+
+There's no added security in this firmware (yet). Gazel protocol uses hardcoded 32-bit ID's
+(0x01020304 and 0x05060708 for the left and the right halves).
+Even if you change them in the code they could be bruteforced. There's a better solution for split keyboards,
+that uses nrf52832 hardware (NOT Mitosis compatible), and BLE-UART with 128-bit UUID, see [BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE).
+
 ## Precompiled Firmware
 
 Bluetosis firmware does NOT come with the softdevice because it would violate Nordic redistribution terms, download
@@ -245,7 +252,7 @@ Pins that may be used for side autodetection:
 * [Trident](https://github.com/YCF/Trident) by [/u/imFengz](https://www.reddit.com/u/imFengz) (Wireless Let's Split, module and battery placed between the switches) ([Reddit](https://redd.it/6um7eg)) ([Image](https://i.imgur.com/mCTgwu5.png))
 * [Orthrus](https://github.com/bezmi/orthrus) by [/u/bezmi](https://www.reddit.com/u/bezmi) (great 52-key Atreus/Mitosis crossover, KiCad project) ([Reddit](https://redd.it/8txry7)) 
 * [Comet](https://github.com/satt99/comet46-hardware) by [/u/SaT99](https://www.reddit.com/user/SaT999) (Comet46 - split 40% wireless keyboard) ([Gallery](https://imgur.com/a/vs1W5qB)) ([Firmware](https://github.com/satt99/comet46-firmware)) ([Reddit](https://redd.it/8ykwjj))
-* [Redox](https://github.com/mattdibi/redox-keyboard/tree/master/redox-w) by [/u/RedditSchloer](https://www.reddit.com/user/RedditSchloer) (Redox Wireless a.k.a. codename Ultron) ([Reddit](https://www.reddit.com/r/MechanicalKeyboards/comments/7sf0bc/photos_wireless_redox/))
+* [Redox Wireless](https://github.com/mattdibi/redox-keyboard/tree/master/redox-w) by [/u/TiaMaT102](https://www.reddit.com/user/TiaMaT102) (Redox Wireless a.k.a. codename Ultron) ([Reddit](https://www.reddit.com/r/MechanicalKeyboards/comments/9jwg0u/redox_codename_ultron/))
 
 ## Other wireless solutions
 
