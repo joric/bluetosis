@@ -4,7 +4,7 @@ Bluetooth firmware for the Mitosis keyboard (right half runs Bluetooth client an
 
 ## Disclaimer
 
-The security is still limited to 32-bit Gazell channel numbers (0x01020304 and 0x05060708 please change them in the code).
+The security is still limited to 32-bit Gazell channel numbers (0x01020304 and 0x05060708, please change them in the code).
 There is split keyboard Bluetooth firmware that uses BLEUart and 128-bit UUID
 ([BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE)), but it can't run on nRF51822.
 
@@ -260,6 +260,7 @@ Pins that may be used for side autodetection:
 * [Orthrus](https://github.com/bezmi/orthrus) by [/u/bezmi](https://www.reddit.com/u/bezmi) (great 52-key Atreus/Mitosis crossover, KiCad project) ([Reddit](https://redd.it/8txry7)) 
 * [Comet](https://github.com/satt99/comet46-hardware) by [/u/SaT99](https://www.reddit.com/user/SaT999) (Comet46 - split 40% wireless keyboard) ([Gallery](https://imgur.com/a/vs1W5qB)) ([Firmware](https://github.com/satt99/comet46-firmware)) ([Reddit](https://redd.it/8ykwjj))
 * [Redox Wireless](https://github.com/mattdibi/redox-keyboard/tree/master/redox-w) by [/u/TiaMaT102](https://www.reddit.com/user/TiaMaT102) (Redox Wireless a.k.a. codename Ultron) ([Reddit](https://www.reddit.com/r/MechanicalKeyboards/comments/9jwg0u/redox_codename_ultron/))
+* [Apoptosis](https://github.com/pseudoku/mitosis) by [/u/Pseudoku_](https://www.reddit.com/user/Pseudoku_) (Custom Mitosis Clone, Warpman layout, 44 keys) ([Reddit](https://www.reddit.com/r/MechanicalKeyboards/comments/9y0xyo/a_small_oddball_family/)) ([Image](https://i.redd.it/uok64wt73zy11.jpg))
 
 ## Other wireless solutions
 
