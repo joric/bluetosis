@@ -8,11 +8,11 @@ The security is still limited to 32-bit Gazell channel numbers (0x01020304 and 0
 There is split keyboard Bluetooth firmware that uses BLEUart and 128-bit UUID
 ([BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE)), but it can't run on nRF51822.
 
+Mitosis firmware uses nRF51822 QFAA modules (YJ-14015) that have 16KB of RAM and nRF51822 QFAC modules (Core51822)
+that have 32KB of RAM. I write and debug on YJ-14015 so it probably will work with the other cheap modules as well.
+
 Battery life was not really tested but the keyboard turns completely off after a few minutes of inactivity
 and wakes up on hardware interrupt (any key) so it should be fine.
-
-There are QFAA chips (YJ-14015) that have only 16KB of RAM and QFAC chips (Core51822) that have 32KB.
-I write and debug on YJ-14015 so it probably works with the other cheap modules as well.
 
 ## Precompiled Firmware
 
