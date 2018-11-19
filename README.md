@@ -4,14 +4,15 @@ Bluetooth firmware for the Mitosis keyboard (right half runs Bluetooth client an
 
 ## Disclaimer
 
-This firmware is not much better than the [original Mitosis firmware](https://github.com/reversebias/mitosis) security-wise.
-Gazel protocol still uses hardcoded 32-bit ID's (0x01020304 and 0x05060708 for the left and the right halves),
-even if you change them in the code they could be bruteforced (at least the left half, right half does not broadcast Gazel traffic in Bluetooth mode).
-There's a better Bluetooth firmware for nRF52832-based (NOT Mitosis compatible) split keyboards
-with BLEUart and 128-bit UUID, see [BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE).
+The security is still limited to 32-bit Gazell channel numbers (0x01020304 and 0x05060708 please change them in the code).
+There is split keyboard Bluetooth firmware that uses BLEUart and 128-bit UUID
+([BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE)), but it can't run on nRF51822.
 
 Battery life was not really tested but the keyboard turns completely off after a few minutes of inactivity
 and wakes up on hardware interrupt (any key) so it should be fine.
+
+There are QFAA chips (YJ-14015) that have only 16KB of RAM and QFAC chips (Core51822) that have 32KB.
+I write and debug on YJ-14015 so it probably works with the other cheap modules as well.
 
 ## Precompiled Firmware
 
@@ -32,6 +33,8 @@ All fimware updates and softdevice go for the right half of the Mitosis keyboard
 [![](https://kle-render.herokuapp.com/api/3f5dd1c848bb9a7a723161ad5e0c8e39?6)](http://www.keyboard-layout-editor.com/#/gists/3f5dd1c848bb9a7a723161ad5e0c8e39)
 
 ## Uploading
+
+You may use either ST-Link V2 or BluePill-based DIY programmer (the latter is cheaper and more convenient)
 
 ### ST-Link V2
 
@@ -230,6 +233,10 @@ on each side (58 total) if you manage to layout them without crossing.
 * [nRF51822 Core-B Schematics](https://www.waveshare.com/w/upload/5/57/Core51822-Schematic.pdf)
 * [nRF51822 Core-B Pinout](https://www.waveshare.com/img/devkit/accBoard/Core51822-B/Core51822-B-pin.jpg)
 
+### Mitosis PCB
+
+* Original Mitosis hardware and PCB repository: https://github.com/reversebias/mitosis-hardware
+
 Unused pins:
 
 * left pins: 11, 12, 20, 22, 25, LED pin 23
@@ -239,10 +246,6 @@ Pins that may be used for side autodetection:
 
 * left-only pins: 16 (L_S16), 18 (L_S22)
 * right-only pins: 22 (R_S22), 25 (R_S16)
-
-### Mitosis PCB
-
-* Original Mitosis hardware and PCB repository: https://github.com/reversebias/mitosis-hardware
 
 ![Mitosis-PCB](https://i.imgur.com/TDxuXfz.jpg)
 
