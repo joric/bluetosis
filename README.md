@@ -1,14 +1,13 @@
 # Bluetosis
 
-Bluetooth firmware for the Mitosis keyboard (right half runs Bluetooth client and Gazell host simultaneously)
+Bluetooth firmware for the Mitosis keyboard (right half runs Bluetooth client and Gazell host, no receiver needed)
 
 ## Disclaimer
 
-The security is still limited to 32-bit Gazell channel numbers (0x01020304 and 0x05060708, please change them in the code).
-There is split keyboard Bluetooth firmware that uses BLEUart and 128-bit UUID
-([BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE)), but it can't run on nRF51822.
+The security is still limited to hardcoded 32-bit Gazell channel numbers (0x01020304 and 0x05060708, please change them in the code).
+[BlueMicro_BLE](https://github.com/jpconstantineau/BlueMicro_BLE) firmware uses 128-bit UUID and BLEUart instead of Gazell, but it does not support nRF51822.
 
-Mitosis firmware uses nRF51822 QFAA modules (YJ-14015) that have 16KB of RAM and nRF51822 QFAC modules (Core51822)
+Mitosis firmware runs on nRF51822 QFAA modules (YJ-14015) that have 16KB of RAM and QFAC modules (Core51822)
 that have 32KB of RAM. I write and debug on YJ-14015 so it probably will work with the other cheap modules as well.
 
 Battery life was not really tested but the keyboard turns completely off after a few minutes of inactivity
