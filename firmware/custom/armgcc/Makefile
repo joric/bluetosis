@@ -11,6 +11,7 @@ $(OUTPUT_DIRECTORY)/nrf51822_xxac.out: \
 # Source files common to all targets
 SRC_FILES += \
   $(PROJ_DIR)/main.c \
+  $(PROJ_DIR)/neopixel.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/button/app_button.c \
@@ -170,6 +171,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/usbd \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/ble/ble_services/ble_hrs \
+  $(SDK_ROOT)/components/ble/ble_radio_notification \
   $(SDK_ROOT)/components/libraries/log/src \
   $(SDK_ROOT)/components/proprietary_rf/gzll \
   $(SDK_ROOT)/components/libraries/fifo \

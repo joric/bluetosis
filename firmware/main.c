@@ -1336,7 +1336,6 @@ static void power_manage(void)
     APP_ERROR_CHECK(err_code);
 }
 
-
 /**@brief Function for application main entry.
  */
 int main(void)

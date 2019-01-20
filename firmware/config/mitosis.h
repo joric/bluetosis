@@ -76,15 +76,15 @@
 #define R_S12 3
 #define R_S13 6
 #define R_S14 9
-#define R_S15 19
+#define R_S15 19 //19 is S15 (uart) //jorian
 #define R_S16 25
-#define R_S17 29
+#define R_S17 0 //29 is S17 (another probe) //jorian
 #define R_S18 28
 #define R_S19 30
 #define R_S20 24
 #define R_S21 23
 #define R_S22 22
-#define R_S23 21
+#define R_S23 0 //21 is led_data //jorian
 
 #define R_MASK (1<<R_S01 | \
  				1<<R_S02 | \

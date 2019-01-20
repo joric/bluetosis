@@ -46,7 +46,7 @@ radio_mode_t running_mode = BLE;
 #undef HWFC
 
 #define RX_PIN_NUMBER  -1
-#define TX_PIN_NUMBER  21
+#define TX_PIN_NUMBER  19 // pin19 == S15 (jorian)
 #define CTS_PIN_NUMBER -1
 #define RTS_PIN_NUMBER -1
 #define HWFC false
@@ -903,6 +903,16 @@ void keyboard_task()
     }
 }
 
+#include "neopixel.h"
+
+neopixel_strip_t m_strip;
+uint8_t dig_pin_num = 21;
+uint8_t leds_per_strip = 4;
+uint8_t error;
+uint8_t led_to_enable = 0;
+uint8_t red = 128;
+uint8_t green = 0;
+uint8_t blue = 0;
 
 void mitosis_init(bool erase_bonds)
 {
@@ -920,6 +930,18 @@ void mitosis_init(bool erase_bonds)
         nrf_gpio_pin_clear(LED_PIN);
         nrf_delay_ms(100);
     }
+
+	neopixel_init(&m_strip, dig_pin_num, leds_per_strip);
+	neopixel_clear(&m_strip);
+	neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
+/*
+        nrf_delay_ms(50);
+		neopixel_set_color(&m_strip, led_to_enable, red, green, blue);
+		neopixel_show(&m_strip);
+		green++;
+..		blue++;
+	neopixel_show(&m_strip);
+*/
 
     printf(running_mode == GAZELL ? "RECEIVER MODE\n" : "BLUETOOTH MODE\n");
 

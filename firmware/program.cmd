@@ -32,7 +32,7 @@ goto end
 
 :blackmagic
 
-set port=COM5
+set port=COM8
 mode %port% | find "RTS" > nul
 if errorlevel 1 echo Port %port% not found && exit
 
