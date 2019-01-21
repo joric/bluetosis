@@ -13,6 +13,61 @@
 #include "mitosis.h"
 #include "mitosis_keymap.h"
 
+
+#include "neopixel.h"
+
+neopixel_strip_t m_strip;
+uint8_t dig_pin_num = 21;
+uint8_t leds_per_strip = 22;
+uint8_t error;
+uint8_t led_to_enable = 0;
+uint8_t red = 0;
+uint8_t green = 0;
+uint8_t blue = 64;
+
+#include "ble_radio_notification.h"
+
+void your_radio_callback_handler(bool radio_active)
+{
+    if (radio_active == false)
+    {
+        printf("radio active==false");
+        neopixel_show(&m_strip);
+    }
+}
+
+
+uint64_t counter = 0;
+
+// every 25 ms
+void led_task()
+{
+    counter++;
+    if (counter%40!=0)
+        return;
+
+//  neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
+/*
+        nrf_delay_ms(50);
+
+        neopixel_set_color(&m_strip, led_to_enable, red, green, blue);
+        neopixel_show(&m_strip);
+        green++;
+        blue++;
+        neopixel_show(&m_strip);
+*/
+
+    //neopixel_set_color(&m_strip, led_to_enable, red, green, blue);
+    neopixel_show(&m_strip);
+
+
+    //red++;
+
+    //green++;
+    //blue++;
+}
+
+
 // external receiver support
 typedef enum
 {
@@ -869,6 +924,9 @@ void key_handler()
 
 void keyboard_task()
 {
+
+    led_task();
+
     keys_snapshot = read_keys();
     keys_recv_snapshot = data_payload_left[0] | (data_payload_left[1] << 8) | (data_payload_left[2] << 16);
 
@@ -903,16 +961,12 @@ void keyboard_task()
     }
 }
 
-#include "neopixel.h"
-
-neopixel_strip_t m_strip;
-uint8_t dig_pin_num = 21;
-uint8_t leds_per_strip = 4;
-uint8_t error;
-uint8_t led_to_enable = 0;
-uint8_t red = 128;
-uint8_t green = 0;
-uint8_t blue = 0;
+uint8_t nc(uint8_t * c) {
+    uint8_t i = (*c-64) / 64;
+    i = (i+1)%4;
+    *c = 64 + i*64;
+    return *c;
+}
 
 void mitosis_init(bool erase_bonds)
 {
@@ -931,17 +985,27 @@ void mitosis_init(bool erase_bonds)
         nrf_delay_ms(100);
     }
 
-	neopixel_init(&m_strip, dig_pin_num, leds_per_strip);
-	neopixel_clear(&m_strip);
-	neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
-/*
-        nrf_delay_ms(50);
-		neopixel_set_color(&m_strip, led_to_enable, red, green, blue);
-		neopixel_show(&m_strip);
-		green++;
-..		blue++;
-	neopixel_show(&m_strip);
-*/
+    neopixel_init(&m_strip, dig_pin_num, leds_per_strip);
+    neopixel_clear(&m_strip);
+    //neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
+
+    uint8_t r=64,g=0,b=0;
+
+    for (int j=0; j<3; j++) {
+
+        switch(j) {
+            case 1: r=0,g=64,b=0; break;
+            case 2: r=0,g=0,b=64; break;
+        }
+
+        for (int i=0; i<leds_per_strip; i++) {
+            neopixel_set_color_and_show(&m_strip, i, r, g, b);
+            nrf_delay_ms(25);
+        }
+    }
+
+
+    //ble_radio_notification_init(6, NRF_RADIO_NOTIFICATION_DISTANCE_5500US, your_radio_callback_handler);
 
     printf(running_mode == GAZELL ? "RECEIVER MODE\n" : "BLUETOOTH MODE\n");
 
