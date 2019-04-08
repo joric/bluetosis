@@ -14,6 +14,7 @@
 #define buf_padding 4
 static uint8_t buf_alloc[SCREEN_W * SCREEN_H / 8 + buf_padding];
 static uint8_t *buf = buf_alloc + buf_padding;
+static bool display_present = false;
 
 static const uint8_t ASCII[][5] = {
   {0x00, 0x00, 0x00, 0x00, 0x00} // 20
@@ -143,6 +144,10 @@ void twi_handler(nrf_drv_twi_evt_t const *p_event, void *p_context) {
 }
 
 void ssd1306_command(uint8_t c) {
+
+    if (!display_present)
+        return;
+
     uint8_t dta_send[] = { 0x00, c };
     if (!nrf_drv_twi_tx(&m_twi, SSD1306_I2C_ADDRESS, dta_send, 2, false)) {
         while (twi_evt_done != true);
@@ -166,6 +171,10 @@ void cmd(uint8_t b, ...) {
 
 
 void Oled_Draw(uint8_t * buf) {
+
+    if (!display_present)
+        return;
+
     ret_code_t ret;
     cmd(0x21, 0, SCREEN_W - 1, 0x22, 0, SCREEN_H == 64 ? 7 : SCREEN_H == 32 ? 3 : 1, 0xff);
 
@@ -198,6 +207,7 @@ void Oled_Draw(uint8_t * buf) {
 void display_init() {
     //printf("%s\n", __FUNCTION__);
 
+
     nrf_drv_twi_config_t twi_config = {
         .scl = SCL_PIN,
         .sda = SDA_PIN,
@@ -207,6 +217,16 @@ void display_init() {
 
     nrf_drv_twi_init(&m_twi, &twi_config, twi_handler, NULL);
     nrf_drv_twi_enable(&m_twi);
+
+    uint8_t dta_send[] = { 0x00, 0x07 };
+
+    if (nrf_drv_twi_tx(&m_twi, SSD1306_I2C_ADDRESS, dta_send, 2, false) == NRF_SUCCESS) {
+        nrf_delay_ms(250);
+        if (twi_evt_done)
+            display_present = true;
+    }
+
+    twi_evt_done = false;
 
     cmd(0xAE, 0xD5, 0x80, 0xA8, 0x1F, 0xD3, 0x00, 0x40, 0x8D, 0x14, 0x20, 0x00, 0xA1, 0xC8, 0xDA, 0x02, 0x81, 0x8F, 0xD9, 0xF1, 0xDB, 0x40, 0xA4, 0xA6, 0x2E, 0xAF, -1);
 

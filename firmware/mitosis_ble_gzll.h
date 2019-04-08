@@ -997,6 +997,7 @@ void mitosis_init(bool erase_bonds)
 
 #ifdef DISPLAY_ENABLED
     display_init();
+    display_update();
 #endif
 
     nrf_gpio_cfg_output(LED_PIN);
