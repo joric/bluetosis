@@ -916,6 +916,11 @@ void key_handler()
                 else if (keys_sent < MAX_KEYS_IN_ONE_REPORT)
                 {
                     buf[2 + keys_sent++] = key;
+
+#ifdef DISPLAY_ENABLED
+display_keypress(key);
+#endif
+
                 }
             }
         }

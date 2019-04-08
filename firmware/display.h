@@ -468,6 +468,18 @@ void display_keypress(uint8_t key) {
     }
 }
 */
+
+
+#define RINGBUF_SIZE 16
+int display_keypos = 0;
+uint8_t display_key = 0;
+char display_ringbuf[RINGBUF_SIZE+1] = {0};
+
+void display_keypress(uint8_t key) {
+    display_keypos = (display_keypos + 1) % RINGBUF_SIZE;
+    display_ringbuf[display_keypos] = (char)(key%128)+32;
+}
+
 void display_update(void) {
 
 /*
@@ -490,5 +502,8 @@ void display_update(void) {
         startgame();
 */
     oledWriteString("Jorian is ready...", 0,0);
+    oledWriteString("Layer 1", 0, 8);
+    display_ringbuf[RINGBUF_SIZE] = 0;
+    oledWriteString(display_ringbuf, 0, 16);
     Oled_Draw(buf);
 }
