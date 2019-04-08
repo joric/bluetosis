@@ -45,7 +45,7 @@
  - Do not use neopixel_set_color_and_show(...) with BLE, instead use uint8_t neopixel_set_color(...);
  */
 
-#include "mbed.h" // remove line if not using mbed
+//#include "mbed.h" // remove line if not using mbed
 
 #include <stdbool.h>
 #include <stdint.h>

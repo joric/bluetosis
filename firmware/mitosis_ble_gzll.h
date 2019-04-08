@@ -4,20 +4,31 @@
 #include "nrf_drv_rtc.h"
 #include "nrf_soc.h"
 
-#ifdef COMPILE_REVERSED
-#define COMPILE_LEFT
-#else
-#define COMPILE_RIGHT
+#ifdef COMPILE_LEFT
+#define LED_DATA_PIN 19
+#define DEBUG_PIN 21
 #endif
 
-#include "mitosis.h"
+#ifdef COMPILE_RIGHT
+#define LED_DATA_PIN 21
+#define DEBUG_PIN 19
+#endif
+
 #include "mitosis_keymap.h"
 
+#define NEOPIXEL_ENABLED
+#define DISPLAY_ENABLED
 
+
+#ifdef DISPLAY_ENABLED
+#include "display.h"
+#endif
+
+#ifdef NEOPIXEL_ENABLED
 #include "neopixel.h"
 
 neopixel_strip_t m_strip;
-uint8_t dig_pin_num = 21;
+uint8_t dig_pin_num = LED_DATA_PIN;
 uint8_t leds_per_strip = 22;
 uint8_t error;
 uint8_t led_to_enable = 0;
@@ -40,7 +51,7 @@ void your_radio_callback_handler(bool radio_active)
 uint64_t counter = 0;
 
 // every 25 ms
-void led_task()
+void neopixel_task()
 {
     counter++;
     if (counter%40!=0)
@@ -66,6 +77,8 @@ void led_task()
     //green++;
     //blue++;
 }
+
+#endif // NEOPIXEL_ENABLED
 
 
 // external receiver support
@@ -925,7 +938,13 @@ void key_handler()
 void keyboard_task()
 {
 
-    led_task();
+#ifdef DISPLAY_ENABLED
+    display_update();
+#endif
+
+#ifdef NEOPIXEL_ENABLED
+    neopixel_task();
+#endif
 
     keys_snapshot = read_keys();
     keys_recv_snapshot = data_payload_left[0] | (data_payload_left[1] << 8) | (data_payload_left[2] << 16);
@@ -975,8 +994,14 @@ void mitosis_init(bool erase_bonds)
     switch_init();
     gpio_config();
 
+
+#ifdef DISPLAY_ENABLED
+    display_init();
+#endif
+
     nrf_gpio_cfg_output(LED_PIN);
 
+#ifdef NEOPIXEL_ENABLED
     for (int i = 0; i < 3; i++)
     {
         nrf_gpio_pin_set(LED_PIN);
@@ -989,13 +1014,14 @@ void mitosis_init(bool erase_bonds)
     neopixel_clear(&m_strip);
     //neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
 
-    uint8_t r=64,g=0,b=0;
+    uint8_t a=64;
+    uint8_t r=a,g=0,b=0;
 
     for (int j=0; j<3; j++) {
 
         switch(j) {
-            case 1: r=0,g=64,b=0; break;
-            case 2: r=0,g=0,b=64; break;
+            case 1: r=0,g=a,b=0; break;
+            case 2: r=0,g=0,b=a; break;
         }
 
         for (int i=0; i<leds_per_strip; i++) {
@@ -1004,8 +1030,9 @@ void mitosis_init(bool erase_bonds)
         }
     }
 
-
     //ble_radio_notification_init(6, NRF_RADIO_NOTIFICATION_DISTANCE_5500US, your_radio_callback_handler);
+
+#endif // NEOPIXEL_ENABLED
 
     printf(running_mode == GAZELL ? "RECEIVER MODE\n" : "BLUETOOTH MODE\n");
 

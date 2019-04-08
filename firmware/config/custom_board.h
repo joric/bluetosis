@@ -46,11 +46,6 @@ extern "C" {
 
 #include "nrf_gpio.h"
 
-#ifdef COMPILE_REVERSED
-#define COMPILE_LEFT
-#else
-#define COMPILE_RIGHT
-#endif
 #include "mitosis.h"
 
 // LEDs definitions
