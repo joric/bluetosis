@@ -1027,7 +1027,8 @@ void mitosis_init(bool erase_bonds)
 
         switch(j) {
             case 1: r=0,g=a,b=0; break;
-            case 2: r=0,g=0,b=a; break;
+            //case 2: r=0,g=0,b=a; break;
+            case 2: r=139,g=0,b=139; break;
         }
 
         for (int i=0; i<leds_per_strip; i++) {
@@ -1035,6 +1036,8 @@ void mitosis_init(bool erase_bonds)
             nrf_delay_ms(25);
         }
     }
+
+    nrf_delay_ms(5000);
 
     //ble_radio_notification_init(6, NRF_RADIO_NOTIFICATION_DISTANCE_5500US, your_radio_callback_handler);
 
