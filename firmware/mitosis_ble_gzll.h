@@ -250,7 +250,7 @@ void m_configure_next_event(void)
     m_slot_length = 10000;
     m_timeslot_request.request_type = NRF_RADIO_REQ_TYPE_EARLIEST;
     m_timeslot_request.params.earliest.hfclk = NRF_RADIO_HFCLK_CFG_NO_GUARANTEE;
-    m_timeslot_request.params.earliest.priority = NRF_RADIO_PRIORITY_NORMAL;
+    m_timeslot_request.params.earliest.priority = NRF_RADIO_PRIORITY_HIGH;
     m_timeslot_request.params.earliest.length_us = m_slot_length;
     m_timeslot_request.params.earliest.timeout_us = 100000;
 }
