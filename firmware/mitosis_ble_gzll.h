@@ -5,11 +5,13 @@
 #include "nrf_soc.h"
 
 #ifdef COMPILE_LEFT
+#pragma message "COMPILE_LEFT"
 #define LED_DATA_PIN 19
 #define DEBUG_PIN 21
 #endif
 
 #ifdef COMPILE_RIGHT
+#pragma message "COMPILE_RIGHT"
 #define LED_DATA_PIN 21
 #define DEBUG_PIN 19
 #endif
@@ -114,7 +116,7 @@ radio_mode_t running_mode = BLE;
 #undef HWFC
 
 #define RX_PIN_NUMBER  -1
-#define TX_PIN_NUMBER  19 // pin19 == S15 (jorian)
+#define TX_PIN_NUMBER  DEBUG_PIN
 #define CTS_PIN_NUMBER -1
 #define RTS_PIN_NUMBER -1
 #define HWFC false

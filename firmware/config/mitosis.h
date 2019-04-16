@@ -1,5 +1,5 @@
-//#define COMPILE_LEFT
-#define COMPILE_RIGHT
+#define COMPILE_LEFT
+//#define COMPILE_RIGHT
 
 
 #define HAND_SENSE 12
@@ -35,7 +35,7 @@
 #define L_S20 15
 #define L_S21 17
 #define L_S22 18
-#define L_S23 19
+#define L_S23 0//19  //19 is led data //jorian
 
 #define L_MASK (1<<L_S01 | \
                 1<<L_S02 | \
