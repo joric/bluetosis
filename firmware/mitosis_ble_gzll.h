@@ -19,7 +19,7 @@
 #include "mitosis_keymap.h"
 
 #define NEOPIXEL_ENABLED
-#define DISPLAY_ENABLED
+//#define DISPLAY_ENABLED
 
 
 #ifdef DISPLAY_ENABLED
@@ -987,12 +987,90 @@ void keyboard_task()
     }
 }
 
-uint8_t nc(uint8_t * c) {
-    uint8_t i = (*c-64) / 64;
-    i = (i+1)%4;
-    *c = 64 + i*64;
-    return *c;
+void strip_setPixelColor(int i, uint32_t c) {
+    uint8_t r = (c >> 16) & 0xff;
+    uint8_t g = (c >> 8) & 0xff;
+    uint8_t b = (c) & 0xff;
+    neopixel_set_color(&m_strip, i, r,g,b);
 }
+
+uint32_t strip_Color(uint8_t r, uint8_t g, uint8_t b) {
+    return (r << 16) | (g<<8) | b;
+}
+
+void delay(int ms) {
+    nrf_delay_ms(ms);
+}
+
+void strip_show() {
+    neopixel_show(&m_strip);
+}
+
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t Wheel(uint8_t WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return strip_Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return strip_Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return strip_Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
+
+
+void rainbow(uint8_t wait) {
+  uint16_t i, j;
+  for(j=0; j<256; j++) {
+    for(i=0; i<leds_per_strip; i++) {
+      strip_setPixelColor(i, Wheel((i+j) & 255));
+    }
+    strip_show();
+    nrf_delay_ms(wait);
+  }
+}
+
+int strip_numPixels() {
+    return leds_per_strip;
+}
+
+
+// Slightly different, this makes the rainbow equally distributed throughout
+void rainbowCycle(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
+    for(i=0; i< strip_numPixels(); i++) {
+      strip_setPixelColor(i, Wheel(((i * 256 / strip_numPixels()) + j) & 255));
+    }
+    strip_show();
+    delay(wait);
+  }
+}
+
+
+//Theatre-style crawling lights with rainbow effect
+void theaterChaseRainbow(uint8_t wait) {
+  for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
+    for (int q=0; q < 3; q++) {
+      for (uint16_t i=0; i < strip_numPixels(); i=i+3) {
+        strip_setPixelColor(i+q, Wheel( (i+j) % 255));    //turn every third pixel on
+      }
+      strip_show();
+
+      delay(wait);
+
+      for (uint16_t i=0; i < strip_numPixels(); i=i+3) {
+        strip_setPixelColor(i+q, 0);        //turn every third pixel off
+      }
+    }
+  }
+}
+
+
 
 void mitosis_init(bool erase_bonds)
 {
@@ -1009,7 +1087,7 @@ void mitosis_init(bool erase_bonds)
 
     nrf_gpio_cfg_output(LED_PIN);
 
-#ifdef NEOPIXEL_ENABLED
+#ifndef NEOPIXEL_ENABLED
     for (int i = 0; i < 3; i++)
     {
         nrf_gpio_pin_set(LED_PIN);
@@ -1017,13 +1095,27 @@ void mitosis_init(bool erase_bonds)
         nrf_gpio_pin_clear(LED_PIN);
         nrf_delay_ms(100);
     }
+#endif
 
+#ifdef NEOPIXEL_ENABLED
     neopixel_init(&m_strip, dig_pin_num, leds_per_strip);
     neopixel_clear(&m_strip);
     //neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
 
+
+    for (int i=0; i<25; i++) {
+//        theaterChaseRainbow(100);
+//        rainbow(1);
+        rainbowCycle(5);
+    }
+
+    neopixel_clear(&m_strip);
+    neopixel_destroy(&m_strip);
+
+/*
     uint8_t a=64;
     uint8_t r=a,g=0,b=0;
+
 
     for (int j=0; j<3; j++) {
 
@@ -1040,6 +1132,7 @@ void mitosis_init(bool erase_bonds)
     }
 
     nrf_delay_ms(5000);
+*/
 
     //ble_radio_notification_init(6, NRF_RADIO_NOTIFICATION_DISTANCE_5500US, your_radio_callback_handler);
 

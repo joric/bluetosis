@@ -36,8 +36,7 @@ set port=COM8
 mode %port% | find "RTS" > nul
 if errorlevel 1 echo Port %port% not found && exit
 
-set eabi=C:\Users\User\AppData\Local\Arduino15\packages\adafruit\tools\gcc-arm-none-eabi\5_2-2015q4\bin
-set path=%eabi%;%path%
+set path=C:\SDK\gcc-arm-none-eabi-8-2018-q4-major-win32\bin;%path%
 
 arm-none-eabi-gdb.exe --quiet --batch -ex "target extended-remote \\.\%port%" -ex "mon swdp_scan" ^
 -ex "file %file:\=/%" -ex "att 1" %erase_opt% -ex load -ex kill
