@@ -1070,6 +1070,57 @@ void theaterChaseRainbow(uint8_t wait) {
   }
 }
 
+//Theatre-style crawling lights.
+void theaterChase(uint32_t c, uint8_t wait) {
+  for (int j=0; j<10; j++) {  //do 10 cycles of chasing
+    for (int q=0; q < 3; q++) {
+      for (uint16_t i=0; i < strip_numPixels(); i=i+3) {
+        strip_setPixelColor(i+q, c);    //turn every third pixel on
+      }
+      strip_show();
+
+      delay(wait);
+
+      for (uint16_t i=0; i < strip_numPixels(); i=i+3) {
+        strip_setPixelColor(i+q, 0);        //turn every third pixel off
+      }
+    }
+  }
+}
+
+
+void colorWipe(uint32_t c, uint8_t wait) {
+  for(uint16_t i=0; i<strip_numPixels(); i++) {
+    strip_setPixelColor(i, c);
+    strip_show();
+    delay(wait);
+  }
+}
+
+#define RGB_W 8
+#define RGB_H 4
+
+const int RGB_MATRIX[RGB_H][RGB_W] = {
+    { 0, 13, 14, 15, 16, 17, 18, 0 },
+    {12, 11,  8,  7,  4,  3, 19, 0 },
+    { 0, 10,  9,  6,  5,  2, 20, 0 },
+    { 0,  0,  0,  0,  0,  1, 21, 22}
+};
+
+void rainbowStripes(uint8_t wait, int axis, int dir) {
+    for (int j=0; j<256*4; j++) {
+      for (int y=0; y<RGB_H; y++) {
+            for (int x=0; x<RGB_W; x++) {
+                int i = RGB_MATRIX[y][x]-1;
+                if (i>=0) { 
+                    strip_setPixelColor(i, Wheel(( j + (dir ? -1 : 1) * (axis ? y : x) *32 ) & 255));
+                }
+            }
+        }
+        delay(wait);
+        strip_show();
+    }
+}
 
 
 void mitosis_init(bool erase_bonds)
@@ -1102,37 +1153,31 @@ void mitosis_init(bool erase_bonds)
     neopixel_clear(&m_strip);
     //neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
 
+/*
+    colorWipe(strip_Color(255, 0, 0), 50); // Red
+    colorWipe(strip_Color(0, 255, 0), 50); // Green
+    colorWipe(strip_Color(0, 0, 255), 50); // Blue
 
-    for (int i=0; i<25; i++) {
-//        theaterChaseRainbow(100);
-//        rainbow(1);
-        rainbowCycle(5);
+    theaterChase(strip_Color(127, 127, 127), 50);
+    theaterChase(strip_Color(127, 0, 0), 50); // Red
+    theaterChase(strip_Color(0, 0, 127), 50); // Blue
+
+    rainbow(20);
+    rainbowCycle(20);
+    theaterChaseRainbow(50);
+*/
+
+    int wait=1;
+    for (int i=0; i<256; i++) {
+        //rainbowCycle(5);
+        rainbowStripes(wait, 0 ,0);
+        rainbowStripes(wait, 0 ,1);
+        rainbowStripes(wait, 1 ,0);
+        rainbowStripes(wait, 1 ,1);
     }
 
     neopixel_clear(&m_strip);
     neopixel_destroy(&m_strip);
-
-/*
-    uint8_t a=64;
-    uint8_t r=a,g=0,b=0;
-
-
-    for (int j=0; j<3; j++) {
-
-        switch(j) {
-            case 1: r=0,g=a,b=0; break;
-            //case 2: r=0,g=0,b=a; break;
-            case 2: r=139,g=0,b=139; break;
-        }
-
-        for (int i=0; i<leds_per_strip; i++) {
-            neopixel_set_color_and_show(&m_strip, i, r, g, b);
-            nrf_delay_ms(25);
-        }
-    }
-
-    nrf_delay_ms(5000);
-*/
 
     //ble_radio_notification_init(6, NRF_RADIO_NOTIFICATION_DISTANCE_5500US, your_radio_callback_handler);
 
