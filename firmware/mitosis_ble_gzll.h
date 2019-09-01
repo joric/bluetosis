@@ -4,6 +4,8 @@
 #include "nrf_drv_rtc.h"
 #include "nrf_soc.h"
 
+#include "custom_board.h"
+
 #define FILTER_OUT_UART_PIN_KEY // uncomment on unwanted HID reports
 
 #ifdef COMPILE_LEFT
@@ -27,8 +29,7 @@
 
 #include "mitosis_keymap.h"
 
-#define RGBLIGHT_ENABLE
-
+//#define RGBLIGHT_ENABLE
 //#define DISPLAY_ENABLE
 
 #ifdef DISPLAY_ENABLE
@@ -277,7 +278,7 @@ void m_configure_next_event(void)
     m_slot_length = 10000;
     m_timeslot_request.request_type = NRF_RADIO_REQ_TYPE_EARLIEST;
     m_timeslot_request.params.earliest.hfclk = NRF_RADIO_HFCLK_CFG_NO_GUARANTEE;
-    m_timeslot_request.params.earliest.priority = NRF_RADIO_PRIORITY_NORMAL;
+    m_timeslot_request.params.earliest.priority = NRF_RADIO_PRIORITY_HIGH;
     m_timeslot_request.params.earliest.length_us = m_slot_length;
     m_timeslot_request.params.earliest.timeout_us = 100000;
 }
@@ -754,12 +755,11 @@ static void switch_init()
     switch_index = savedata.index;
     rgb_mode = savedata.rgb_mode;
 
-    running_mode = (switch_index == RF_INDEX) ? GAZELL : BLE;
-
 #ifdef COMPILE_LEFT
-//    switch_index = RF_INDEX;
-//    running_mode = GAZELL;
+    switch_index = RF_INDEX;
 #endif
+
+    running_mode = (switch_index == RF_INDEX) ? GAZELL : BLE;
 
     if (running_mode == BLE)
     {

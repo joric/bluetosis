@@ -1,5 +1,5 @@
-//#define COMPILE_LEFT
-#define COMPILE_RIGHT
+#define COMPILE_LEFT
+//#define COMPILE_RIGHT
 
 
 #define HAND_SENSE 12
