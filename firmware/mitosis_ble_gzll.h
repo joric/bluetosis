@@ -620,8 +620,6 @@ void eeprom_read()
         ret_code_t ret = fds_record_write(&record_desc, &record);
         APP_ERROR_CHECK(ret);
     }
-
-    rgb_mode = savedata.rgb_mode;
 }
 
 
@@ -700,7 +698,6 @@ static void switch_select(uint8_t index)
 
     switch_index = index;
     savedata.index = switch_index;
-    savedata.rgb_mode = rgb_mode;
     eeprom_write();
 
     uint32_t err_code;
@@ -755,6 +752,7 @@ static void switch_init()
 {
     eeprom_read();
     switch_index = savedata.index;
+    rgb_mode = savedata.rgb_mode;
 
     running_mode = (switch_index == RF_INDEX) ? GAZELL : BLE;
 

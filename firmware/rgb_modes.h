@@ -6,6 +6,7 @@ uint8_t leds_per_strip = RGBLED_NUM;
 
 #include "ble_radio_notification.h"
 
+// does not work yet
 void your_radio_callback_handler(bool radio_active) {
     if (radio_active == false) {
         printf("radio active==false");
@@ -99,10 +100,10 @@ void rgb_radial() {
 }
 
 void rgb_wipe() {
-    int n = leds_per_strip;
-    int k = n * (millis() % 1000) / 1000;
+    int n = leds_per_strip, t = 1800;
+    int k = n * (millis() % t) / t;
     for (int i=0; i<n; i++) {
-        setColor(i, (i==k) ? 0xff0000 : 0);
+        setColor(i, (i==k) ? 0x200000 : 0);
     }
 }
 
@@ -132,6 +133,7 @@ void rgb_task() {
 
     if (rgb_mode<0)
         rgb_mode = 0;
+
     rgb_mode = rgb_mode % (num_modes + 1);
 
     // last mode means rgb disabled
