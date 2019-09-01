@@ -1,5 +1,5 @@
-#define COMPILE_LEFT
-//#define COMPILE_RIGHT
+//#define COMPILE_LEFT
+#define COMPILE_RIGHT
 
 
 #define HAND_SENSE 12
@@ -35,7 +35,7 @@
 #define L_S20 15
 #define L_S21 17
 #define L_S22 18
-#define L_S23 0//19  //19 is led data //jorian
+#define L_S23 20//19  //19 is led data //jorian, so pin 20 is unused
 
 #define L_MASK (1<<L_S01 | \
                 1<<L_S02 | \
@@ -79,15 +79,15 @@
 #define R_S12 3
 #define R_S13 6
 #define R_S14 9
-#define R_S15 19 //19 is S15 (uart) //jorian
+#define R_S15 19 // sometimes used for uart //jorian
 #define R_S16 25
-#define R_S17 0 //29 is S17 (another probe) //jorian
+#define R_S17 29 // another usable probe point //jorian
 #define R_S18 28
 #define R_S19 30
 #define R_S20 24
 #define R_S21 23
 #define R_S22 22
-#define R_S23 0 //21 is led_data //jorian
+#define R_S23 20 //21 is led_data //jorian, pin 20 is unused (SWO))
 
 #define R_MASK (1<<R_S01 | \
                 1<<R_S02 | \

@@ -4,84 +4,41 @@
 #include "nrf_drv_rtc.h"
 #include "nrf_soc.h"
 
+#define FILTER_OUT_UART_PIN_KEY // uncomment on unwanted HID reports
+
 #ifdef COMPILE_LEFT
 #pragma message "COMPILE_LEFT"
-#define LED_DATA_PIN 19
-#define DEBUG_PIN 21
+#define RGB_DI_PIN 19
+#define DEBUG_PIN 20
 #endif
 
 #ifdef COMPILE_RIGHT
 #pragma message "COMPILE_RIGHT"
-#define LED_DATA_PIN 21
-#define DEBUG_PIN 19
+#define RGB_DI_PIN 21
+#define DEBUG_PIN 20
 #endif
+
+#define RGBLED_NUM 22
+
+#define KEY_RF S17
+#define KEY_ADJUST S16
+#define KEY_FN S18
+#define KEY_PINKY S22
 
 #include "mitosis_keymap.h"
 
-#define NEOPIXEL_ENABLED
-//#define DISPLAY_ENABLED
+#define RGBLIGHT_ENABLE
 
+//#define DISPLAY_ENABLE
 
-#ifdef DISPLAY_ENABLED
+#ifdef DISPLAY_ENABLE
 #include "display.h"
 #endif
 
-#ifdef NEOPIXEL_ENABLED
-#include "neopixel.h"
-
-neopixel_strip_t m_strip;
-uint8_t dig_pin_num = LED_DATA_PIN;
-uint8_t leds_per_strip = 22;
-uint8_t error;
-uint8_t led_to_enable = 0;
-uint8_t red = 0;
-uint8_t green = 0;
-uint8_t blue = 64;
-
-#include "ble_radio_notification.h"
-
-void your_radio_callback_handler(bool radio_active)
-{
-    if (radio_active == false)
-    {
-        printf("radio active==false");
-        neopixel_show(&m_strip);
-    }
-}
-
-
-uint64_t counter = 0;
-
-// every 25 ms
-void neopixel_task()
-{
-    counter++;
-    if (counter%40!=0)
-        return;
-
-//  neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
-/*
-        nrf_delay_ms(50);
-
-        neopixel_set_color(&m_strip, led_to_enable, red, green, blue);
-        neopixel_show(&m_strip);
-        green++;
-        blue++;
-        neopixel_show(&m_strip);
-*/
-
-    //neopixel_set_color(&m_strip, led_to_enable, red, green, blue);
-    neopixel_show(&m_strip);
-
-
-    //red++;
-
-    //green++;
-    //blue++;
-}
-
-#endif // NEOPIXEL_ENABLED
-
+int rgb_mode = 0;
+#ifdef RGBLIGHT_ENABLE
+#include "rgb_modes.h"
+#endif
 
 // external receiver support
 typedef enum
@@ -596,7 +553,6 @@ uint8_t get_battery_level(void)
 // Return the key states, masked with valid key pins
 static uint32_t read_keys(void)
 {
-//#define FILTER_OUT_UART_PIN_KEY // uncomment on unwanted HID reports
 #ifdef FILTER_OUT_UART_PIN_KEY
     uint32_t uart_pin = 1 << TX_PIN_NUMBER;
     return ~NRF_GPIO->IN & INPUT_MASK & ~uart_pin;
@@ -632,7 +588,7 @@ fds_flash_record_t  flash_record;
 typedef struct
 {
     int index;
-    int reserved1;
+    int rgb_mode;
     int reserved2;
 } savedata_t;
 
@@ -664,6 +620,8 @@ void eeprom_read()
         ret_code_t ret = fds_record_write(&record_desc, &record);
         APP_ERROR_CHECK(ret);
     }
+
+    rgb_mode = savedata.rgb_mode;
 }
 
 
@@ -680,9 +638,6 @@ static uint32_t switch_index = 0;
 #define ACTIVITY 4*60*1000  // unactivity time till power off (4 minutes)
 #define RESET_DELAY 50      // delayed reset
 
-#define KEY_FN S20
-#define KEY_ADJUST S23
-#define KEY_RF S19
 #define SWITCH_COUNT 4
 #define PEERS_COUNT (SWITCH_COUNT - 1)
 #define RF_INDEX (SWITCH_COUNT - 1)
@@ -745,6 +700,7 @@ static void switch_select(uint8_t index)
 
     switch_index = index;
     savedata.index = switch_index;
+    savedata.rgb_mode = rgb_mode;
     eeprom_write();
 
     uint32_t err_code;
@@ -802,6 +758,11 @@ static void switch_init()
 
     running_mode = (switch_index == RF_INDEX) ? GAZELL : BLE;
 
+#ifdef COMPILE_LEFT
+//    switch_index = RF_INDEX;
+//    running_mode = GAZELL;
+#endif
+
     if (running_mode == BLE)
     {
         switch_select(switch_index);
@@ -810,8 +771,19 @@ static void switch_init()
 
 
 // temporary, should be moved to layouts
+// NB! these called only on key release
 void hardware_keys()
 {
+    bool k1 = keys & (1<<KEY_RF);
+    bool k2 = keys & (1<<KEY_ADJUST);
+    bool k3 = keys & (1<<KEY_FN);
+    bool pinky = keys & (1<<KEY_PINKY);
+
+    if ( k1 && k2 && k3 && pinky)
+        m_delayed_reset = true;
+
+
+    if (false) {
     if (keys & (1<<KEY_ADJUST))
     {
         int index = -1;
@@ -846,6 +818,7 @@ void hardware_keys()
                 m_delayed_reset = true;
             }
         }
+    }
     }
 
     if (m_delayed_reset)
@@ -915,11 +888,17 @@ void key_handler()
                 {
                     m_layer = (key >> 8) & 0xf;
                 }
+                else if (key == RGBMOD)
+                {
+                    rgb_mode++;
+                    savedata.rgb_mode = rgb_mode;
+                    eeprom_write();
+                }
                 else if (keys_sent < MAX_KEYS_IN_ONE_REPORT)
                 {
                     buf[2 + keys_sent++] = key;
 
-#ifdef DISPLAY_ENABLED
+#ifdef DISPLAY_ENABLE
 display_keypress(key);
 #endif
 
@@ -945,12 +924,12 @@ display_keypress(key);
 void keyboard_task()
 {
 
-#ifdef DISPLAY_ENABLED
+#ifdef DISPLAY_ENABLE
     display_update();
 #endif
 
-#ifdef NEOPIXEL_ENABLED
-    neopixel_task();
+#ifdef RGBLIGHT_ENABLE
+    rgb_task();
 #endif
 
     keys_snapshot = read_keys();
@@ -987,142 +966,6 @@ void keyboard_task()
     }
 }
 
-void strip_setPixelColor(int i, uint32_t c) {
-    uint8_t r = (c >> 16) & 0xff;
-    uint8_t g = (c >> 8) & 0xff;
-    uint8_t b = (c) & 0xff;
-    neopixel_set_color(&m_strip, i, r,g,b);
-}
-
-uint32_t strip_Color(uint8_t r, uint8_t g, uint8_t b) {
-    return (r << 16) | (g<<8) | b;
-}
-
-void delay(int ms) {
-    nrf_delay_ms(ms);
-}
-
-void strip_show() {
-    neopixel_show(&m_strip);
-}
-
-// Input a value 0 to 255 to get a color value.
-// The colours are a transition r - g - b - back to r.
-uint32_t Wheel(uint8_t WheelPos) {
-  WheelPos = 255 - WheelPos;
-  if(WheelPos < 85) {
-    return strip_Color(255 - WheelPos * 3, 0, WheelPos * 3);
-  }
-  if(WheelPos < 170) {
-    WheelPos -= 85;
-    return strip_Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-  WheelPos -= 170;
-  return strip_Color(WheelPos * 3, 255 - WheelPos * 3, 0);
-}
-
-
-void rainbow(uint8_t wait) {
-  uint16_t i, j;
-  for(j=0; j<256; j++) {
-    for(i=0; i<leds_per_strip; i++) {
-      strip_setPixelColor(i, Wheel((i+j) & 255));
-    }
-    strip_show();
-    nrf_delay_ms(wait);
-  }
-}
-
-int strip_numPixels() {
-    return leds_per_strip;
-}
-
-
-// Slightly different, this makes the rainbow equally distributed throughout
-void rainbowCycle(uint8_t wait) {
-  uint16_t i, j;
-
-  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
-    for(i=0; i< strip_numPixels(); i++) {
-      strip_setPixelColor(i, Wheel(((i * 256 / strip_numPixels()) + j) & 255));
-    }
-    strip_show();
-    delay(wait);
-  }
-}
-
-
-//Theatre-style crawling lights with rainbow effect
-void theaterChaseRainbow(uint8_t wait) {
-  for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
-    for (int q=0; q < 3; q++) {
-      for (uint16_t i=0; i < strip_numPixels(); i=i+3) {
-        strip_setPixelColor(i+q, Wheel( (i+j) % 255));    //turn every third pixel on
-      }
-      strip_show();
-
-      delay(wait);
-
-      for (uint16_t i=0; i < strip_numPixels(); i=i+3) {
-        strip_setPixelColor(i+q, 0);        //turn every third pixel off
-      }
-    }
-  }
-}
-
-//Theatre-style crawling lights.
-void theaterChase(uint32_t c, uint8_t wait) {
-  for (int j=0; j<10; j++) {  //do 10 cycles of chasing
-    for (int q=0; q < 3; q++) {
-      for (uint16_t i=0; i < strip_numPixels(); i=i+3) {
-        strip_setPixelColor(i+q, c);    //turn every third pixel on
-      }
-      strip_show();
-
-      delay(wait);
-
-      for (uint16_t i=0; i < strip_numPixels(); i=i+3) {
-        strip_setPixelColor(i+q, 0);        //turn every third pixel off
-      }
-    }
-  }
-}
-
-
-void colorWipe(uint32_t c, uint8_t wait) {
-  for(uint16_t i=0; i<strip_numPixels(); i++) {
-    strip_setPixelColor(i, c);
-    strip_show();
-    delay(wait);
-  }
-}
-
-#define RGB_W 8
-#define RGB_H 4
-
-const int RGB_MATRIX[RGB_H][RGB_W] = {
-    { 0, 13, 14, 15, 16, 17, 18, 0 },
-    {12, 11,  8,  7,  4,  3, 19, 0 },
-    { 0, 10,  9,  6,  5,  2, 20, 0 },
-    { 0,  0,  0,  0,  0,  1, 21, 22}
-};
-
-void rainbowStripes(uint8_t wait, int axis, int dir) {
-    for (int j=0; j<256*4; j++) {
-      for (int y=0; y<RGB_H; y++) {
-            for (int x=0; x<RGB_W; x++) {
-                int i = RGB_MATRIX[y][x]-1;
-                if (i>=0) { 
-                    strip_setPixelColor(i, Wheel(( j + (dir ? -1 : 1) * (axis ? y : x) *32 ) & 255));
-                }
-            }
-        }
-        delay(wait);
-        strip_show();
-    }
-}
-
-
 void mitosis_init(bool erase_bonds)
 {
     printf("Mitosis init\n");
@@ -1130,15 +973,14 @@ void mitosis_init(bool erase_bonds)
     switch_init();
     gpio_config();
 
-
-#ifdef DISPLAY_ENABLED
+#ifdef DISPLAY_ENABLE
     display_init();
     display_update();
 #endif
 
     nrf_gpio_cfg_output(LED_PIN);
 
-#ifndef NEOPIXEL_ENABLED
+#ifndef RGBLIGHT_ENABLE
     for (int i = 0; i < 3; i++)
     {
         nrf_gpio_pin_set(LED_PIN);
@@ -1148,40 +990,9 @@ void mitosis_init(bool erase_bonds)
     }
 #endif
 
-#ifdef NEOPIXEL_ENABLED
-    neopixel_init(&m_strip, dig_pin_num, leds_per_strip);
-    neopixel_clear(&m_strip);
-    //neopixel_set_color_and_show(&m_strip, led_to_enable, red, green, blue);
-
-/*
-    colorWipe(strip_Color(255, 0, 0), 50); // Red
-    colorWipe(strip_Color(0, 255, 0), 50); // Green
-    colorWipe(strip_Color(0, 0, 255), 50); // Blue
-
-    theaterChase(strip_Color(127, 127, 127), 50);
-    theaterChase(strip_Color(127, 0, 0), 50); // Red
-    theaterChase(strip_Color(0, 0, 127), 50); // Blue
-
-    rainbow(20);
-    rainbowCycle(20);
-    theaterChaseRainbow(50);
-*/
-
-    int wait=1;
-    for (int i=0; i<256; i++) {
-        //rainbowCycle(5);
-        rainbowStripes(wait, 0 ,0);
-        rainbowStripes(wait, 0 ,1);
-        rainbowStripes(wait, 1 ,0);
-        rainbowStripes(wait, 1 ,1);
-    }
-
-    neopixel_clear(&m_strip);
-    neopixel_destroy(&m_strip);
-
-    //ble_radio_notification_init(6, NRF_RADIO_NOTIFICATION_DISTANCE_5500US, your_radio_callback_handler);
-
-#endif // NEOPIXEL_ENABLED
+#ifdef RGBLIGHT_ENABLE
+    rgb_init();
+#endif
 
     printf(running_mode == GAZELL ? "RECEIVER MODE\n" : "BLUETOOTH MODE\n");
 
@@ -1190,6 +1001,16 @@ void mitosis_init(bool erase_bonds)
 #ifdef COMPILE_REVERSED
     printf("REVERSED\n");
 #endif
+
+    // delete bonds on 3 thumb keys on startup
+    keys = read_keys();
+    bool k1 = keys & (1<<KEY_RF);
+    bool k2 = keys & (1<<KEY_ADJUST);
+    bool k3 = keys & (1<<KEY_FN);
+    bool reset_bonds = k1 && k2 && k3;
+    if (reset_bonds) {
+        pm_peers_delete();
+    }
 
     gazell_sd_radio_init();
 }
